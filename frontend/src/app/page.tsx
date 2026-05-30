@@ -4,13 +4,16 @@ import { useEffect, useState } from "react";
 import { fetchDashboardData, DSEIData } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, AlertTriangle, Droplet, Map, RefreshCcw, Sparkles, Trash2, Users } from "lucide-react";
+import { Activity, AlertTriangle, Droplet, Map as MapIcon, RefreshCcw, Sparkles, Trash2, Users } from "lucide-react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import dynamic from "next/dynamic";
+
+const MapChart = dynamic(() => import("@/components/MapChart"), { ssr: false });
 
 export default function Dashboard() {
   const [dataByYear, setDataByYear] = useState<Record<string, DSEIData[]>>({});
-  const [selectedYear, setSelectedYear] = useState<string>("2024");
-  const [selectedDsei, setSelectedDsei] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("2026");
+  const [selectedDsei, setSelectedDsei] = useState<string>("YANOMAMI");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,19 +35,7 @@ export default function Dashboard() {
   }, []);
 
   const currentData = dataByYear[selectedYear]?.find((d) => d.dsei === selectedDsei);
-  
-  // Calcular tendência se houver ano anterior
-  let trend = "Estável";
-  let previousCases = 0;
-  if (selectedYear === "2024" && dataByYear["2023"]) {
-    const prevData = dataByYear["2023"].find(d => d.dsei === selectedDsei);
-    if (prevData) {
-      previousCases = prevData.dengue_cases;
-      if (currentData && currentData.dengue_cases > previousCases) trend = "Aumento";
-      if (currentData && currentData.dengue_cases < previousCases) trend = "Queda";
-    }
-  }
-
+  const trend = currentData?.trend || "Estabilidade";
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
@@ -97,7 +88,7 @@ export default function Dashboard() {
             <Card className="shadow-sm border-slate-200 bg-white">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                  <Map className="w-4 h-4" />
+                  <MapIcon className="w-4 h-4" />
                   Resumo do Território
                 </CardTitle>
               </CardHeader>
@@ -110,7 +101,7 @@ export default function Dashboard() {
                   <span>População Estimada: <span className="font-semibold">{currentData.population?.toLocaleString('pt-BR') || 'N/A'}</span></span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600 mt-2">
-                  <Map className="w-4 h-4 text-primary" />
+                  <MapIcon className="w-4 h-4 text-primary" />
                   <span>Nível de análise: Regional (DSEI)</span>
                 </div>
               </CardContent>
@@ -152,14 +143,15 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Minigráfico de série temporal */}
-                {currentData.dengue_daily && currentData.dengue_daily.length > 0 && (
+                {currentData.dengue_monthly && currentData.dengue_monthly.length > 0 && (
                   <div className="h-16 w-full mt-4">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={currentData.dengue_daily}>
+                      <LineChart data={currentData.dengue_monthly}>
                         <Tooltip 
                           contentStyle={{ fontSize: '12px', borderRadius: '6px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                           labelStyle={{ color: '#64748b' }}
                           formatter={(value: number) => [value, 'Casos']}
+                          labelFormatter={(label) => `Mês ${label}`}
                         />
                         <Line 
                           type="monotone" 
@@ -212,8 +204,31 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
+            <Card className="shadow-sm border-slate-200 bg-white xl:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <MapIcon className="w-4 h-4" />
+                  Mapa Epidemiológico (Territórios Indígenas)
+                </CardTitle>
+                <CardDescription>
+                  Distribuição geográfica de casos prováveis (Bolhas vermelhas indicam maior número)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="w-full h-80 bg-slate-50/50 rounded-lg border border-slate-100 overflow-hidden relative">
+                   {dataByYear[selectedYear] && (
+                     <MapChart 
+                       data={dataByYear[selectedYear]} 
+                       selectedDsei={selectedDsei} 
+                       onSelectDsei={setSelectedDsei} 
+                     />
+                   )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Bloco 4: Recomendação gerada por IA (Backend) */}
-            <Card className="shadow-md border-indigo-200 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 xl:col-span-4 relative overflow-hidden group">
+            <Card className="shadow-md border-indigo-200 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 xl:col-span-2 relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold text-indigo-700 flex items-center gap-2">
