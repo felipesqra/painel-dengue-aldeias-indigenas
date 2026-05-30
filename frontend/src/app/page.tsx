@@ -1,275 +1,230 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { 
-  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
-  ResponsiveContainer, BarChart, Bar, Cell
-} from 'recharts';
-import { Droplets, Activity, MapPin, AlertTriangle, Search, ShieldAlert } from 'lucide-react';
-
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { useEffect, useState } from "react";
+import { fetchDashboardData, generateAIRecommendation, DSEIData } from "@/lib/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Activity, AlertTriangle, Droplet, Map, RefreshCcw, Sparkles, Trash2, Users } from "lucide-react";
 
 export default function Dashboard() {
-  const [data, setData] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  
+  const [data, setData] = useState<DSEIData[]>([]);
+  const [selectedDsei, setSelectedDsei] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [aiRecommendation, setAiRecommendation] = useState<string>("");
+  const [loadingAi, setLoadingAi] = useState(false);
+
   useEffect(() => {
-    fetch('/dashboard_data.json?t=' + new Date().getTime())
-      .then(res => res.json())
-      .then(json => {
-        setData(json.dseis.sort((a: any, b: any) => b.incidence - a.incidence));
-      })
-      .catch(err => console.error("Error fetching data:", err));
+    async function loadData() {
+      const result = await fetchDashboardData();
+      setData(result);
+      if (result.length > 0) {
+        setSelectedDsei(result[0].dsei);
+      }
+      setLoading(false);
+    }
+    loadData();
   }, []);
 
-  if (data.length === 0) {
-    return <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-900">Carregando dados...</div>;
+  const currentData = data.find((d) => d.dsei === selectedDsei);
+
+  useEffect(() => {
+    async function fetchAi() {
+      if (!currentData) return;
+      setLoadingAi(true);
+      
+      const promptData = {
+        dsei: currentData.dsei,
+        casos: currentData.dengue_cases,
+        sem_banheiro: currentData.sanitation_no_bathroom,
+        sem_coleta_lixo: currentData.solid_waste_no_collection,
+        esgoto_resumo: \`\${currentData.sanitation_no_bathroom}% sem banheiro.\`
+      };
+      
+      const text = await generateAIRecommendation(promptData);
+      setAiRecommendation(text);
+      setLoadingAi(false);
+    }
+    fetchAi();
+  }, [currentData]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="animate-spin text-primary">
+          <RefreshCcw size={32} />
+        </div>
+      </div>
+    );
   }
 
-  const totalDengue = data.reduce((acc, curr) => acc + curr.dengue_cases, 0);
-  const avgVuln = data.reduce((acc, curr) => acc + curr.vulnerability_score, 0) / data.length;
-  const worstDsei = [...data].sort((a, b) => b.vulnerability_score - a.vulnerability_score)[0];
-  const highestIncidence = [...data].sort((a, b) => b.incidence - a.incidence).slice(0, 5);
-  const filteredData = data.filter(d => d.dsei.toLowerCase().includes(searchTerm.toLowerCase()));
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const d = payload[0].payload;
-      return (
-        <Card className="shadow-lg border-slate-200">
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-sm font-bold">{d.dsei}</CardTitle>
-            <CardDescription className="text-xs">População: {d.populacao.toLocaleString('pt-BR')} hab.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 pt-0 text-sm space-y-1">
-            <p className="text-blue-600 font-medium">Precariedade Hídrica: {d.vulnerability_score}%</p>
-            <p className="text-rose-600 font-medium">Casos de Dengue: {d.dengue_cases}</p>
-            <p className="text-rose-700 font-bold">Incidência (10k hab): {d.incidence}</p>
-          </CardContent>
-        </Card>
-      );
-    }
-    return null;
-  };
-
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
-      
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 p-6 border-r bg-white md:sticky md:top-0 md:h-screen z-10 flex flex-col">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Droplets className="text-blue-600" size={24} />
-          </div>
-          <h1 className="font-extrabold text-blue-700 text-xl uppercase tracking-wider">SASI</h1>
-        </div>
-        <nav className="flex flex-col gap-2 flex-1">
-          <a href="#" className="p-3 rounded-lg bg-blue-50 text-blue-700 font-semibold flex items-center gap-3 transition">
-            <Activity size={18} /> Dashboard Geral
-          </a>
-          <a href="#dseis" className="p-3 rounded-lg hover:bg-slate-100 text-slate-600 font-medium flex items-center gap-3 transition">
-            <MapPin size={18} /> Dados por DSEI
-          </a>
-        </nav>
-        <div className="mt-auto pt-6 border-t border-slate-100 text-xs text-slate-500">
-          <p className="font-medium">Hackathon Prototype</p>
-          <p>Base: SIASI/SESAI e SINAN</p>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 flex flex-col gap-8 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
+      <div className="max-w-7xl mx-auto space-y-8">
         
-        <header>
-          <h2 className="text-3xl font-extrabold mb-2 text-slate-900 tracking-tight">Vulnerabilidade Hídrica e Dengue</h2>
-          <p className="text-slate-500 text-lg">Análise da incidência ajustada de Dengue nas terras indígenas demarcadas, cruzada com a precariedade sanitária.</p>
+        {/* Header e Filtros */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-slate-200">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Painel SasiSUS & SINAN</h1>
+            <p className="text-slate-500">Monitoramento de Dengue e Saneamento em Aldeias Indígenas</p>
+          </div>
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <select 
+              value={selectedDsei}
+              onChange={(e) => setSelectedDsei(e.target.value)}
+              className="flex h-10 w-full md:w-48 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+            >
+              {data.map((d) => (
+                <option key={d.dsei} value={d.dsei}>
+                  DSEI {d.dsei}
+                </option>
+              ))}
+            </select>
+            {/* Mock Filters for UI presentation */}
+            <select disabled className="flex h-10 w-full md:w-32 items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm shadow-sm opacity-60 cursor-not-allowed">
+              <option>Estado (Todos)</option>
+            </select>
+            <select disabled className="flex h-10 w-full md:w-32 items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm shadow-sm opacity-60 cursor-not-allowed">
+              <option>Município (Todos)</option>
+            </select>
+            <select disabled className="flex h-10 w-full md:w-32 items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm shadow-sm opacity-60 cursor-not-allowed">
+              <option>Aldeia (Geral)</option>
+            </select>
+            <select disabled className="flex h-10 w-full md:w-32 items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm shadow-sm opacity-60 cursor-not-allowed">
+              <option>Período (2024)</option>
+            </select>
+          </div>
         </header>
 
-        {/* Summary Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-4 bg-rose-100 rounded-xl">
-                <Activity className="text-rose-600" size={24} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">Total Casos (Regiões)</p>
-                <h3 className="text-3xl font-bold text-slate-900">{totalDengue.toLocaleString('pt-BR')}</h3>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-4 bg-blue-100 rounded-xl">
-                <Droplets className="text-blue-600" size={24} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">Precariedade Média</p>
-                <h3 className="text-3xl font-bold text-slate-900">{avgVuln.toFixed(1)}%</h3>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-rose-200">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-4 bg-rose-50 rounded-xl">
-                <ShieldAlert className="text-rose-600" size={24} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-500 mb-1">Maior Risco Hídrico</p>
-                <h3 className="text-xl font-bold text-rose-600 truncate">{worstDsei.dsei}</h3>
-                <p className="text-xs text-slate-400 mt-1">Score Proxy: {worstDsei.vulnerability_score}%</p>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+        {currentData ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            
+            {/* Bloco 1: Resumo do território */}
+            <Card className="shadow-sm border-slate-200 bg-white">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <Map className="w-4 h-4" />
+                  Resumo do Território
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-slate-800 mb-1 truncate">
+                  {currentData.dsei}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-600 mt-4">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span>População Estimada: <span className="font-semibold">{currentData.population?.toLocaleString('pt-BR') || 'N/A'}</span></span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-600 mt-2">
+                  <Map className="w-4 h-4 text-primary" />
+                  <span>Nível de análise: Regional (DSEI)</span>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Charts */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Precariedade vs Incidência (10k)</CardTitle>
-              <CardDescription>DSEIs com maior precariedade apresentam mais dengue?</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[350px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis 
-                    type="number" 
-                    dataKey="vulnerability_score" 
-                    name="Precariedade" 
-                    unit="%" 
-                    stroke="#94a3b8"
-                    fontSize={12}
-                    label={{ value: "Score de Precariedade Hídrica (%)", position: "bottom", fill: "#64748b", dy: 10, fontSize: 12 }}
-                  />
-                  <YAxis 
-                    type="number" 
-                    dataKey="incidence" 
-                    name="Incidência" 
-                    stroke="#94a3b8"
-                    fontSize={12}
-                    label={{ value: "Incidência Dengue", angle: -90, position: "insideLeft", fill: "#64748b", dx: -10, fontSize: 12 }}
-                  />
-                  <RechartsTooltip cursor={{strokeDasharray: '3 3'}} content={<CustomTooltip />} />
-                  <Scatter name="DSEIs" data={data}>
-                    {data.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.vulnerability_score > 50 ? '#e11d48' : '#0284c7'} />
-                    ))}
-                  </Scatter>
-                </ScatterChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+            {/* Bloco 2: Situação da dengue */}
+            <Card className="shadow-sm border-slate-200 bg-white relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-red-50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500" />
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Activity className="w-4 h-4" />
+                    Situação da Dengue
+                  </span>
+                  <Badge variant={currentData.dengue_incidence > 50 ? "destructive" : "default"} className="font-normal shadow-sm">
+                    {currentData.dengue_incidence > 50 ? "Prioridade: Alta" : "Prioridade: Normal"}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-slate-800">
+                  {currentData.dengue_cases} <span className="text-sm font-normal text-slate-500">casos prováveis</span>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Tendência recente</span>
+                    <span className="font-medium text-red-600 flex items-center gap-1">Aumento <Activity className="w-3 h-3" /></span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Incidência (por 10k)</span>
+                    <span className="font-medium text-slate-700">{currentData.dengue_incidence?.toFixed(1) || 0}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Top 5 Incidência de Dengue</CardTitle>
-              <CardDescription>Taxa de casos por 10.000 habitantes.</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[350px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={highestIncidence} margin={{ top: 20, right: 30, left: -20, bottom: 60 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis 
-                    dataKey="dsei" 
-                    stroke="#94a3b8" 
-                    angle={-45} 
-                    textAnchor="end" 
-                    height={70}
-                    tick={{fontSize: 10, fontWeight: 500}}
-                  />
-                  <YAxis stroke="#94a3b8" fontSize={12} />
-                  <RechartsTooltip cursor={{fill: '#f8fafc'}} content={<CustomTooltip />} />
-                  <Bar dataKey="incidence" radius={[6, 6, 0, 0]}>
-                    {highestIncidence.map((entry, index) => (
-                      <Cell key={`cell-bar-${index}`} fill={index === 0 ? '#e11d48' : '#0ea5e9'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </section>
+            {/* Bloco 3: Vulnerabilidades estruturais */}
+            <Card className="shadow-sm border-slate-200 bg-white xl:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  Vulnerabilidades Estruturais
+                </CardTitle>
+                <CardDescription>
+                  Média de infraestrutura sanitária nas aldeias do DSEI
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                  <div className="p-4 rounded-lg bg-orange-50/50 border border-orange-100 flex items-start gap-4 hover:shadow-md transition-shadow">
+                    <div className="p-2 bg-orange-100 text-orange-600 rounded-md">
+                      <Droplet className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-orange-900">{currentData.sanitation_no_bathroom?.toFixed(1)}%</div>
+                      <div className="text-sm text-orange-700 leading-tight mt-1">das aldeias não possuem estrutura adequada de esgoto/banheiro</div>
+                    </div>
+                  </div>
 
-        {/* Data Table */}
-        <Card id="dseis" className="overflow-hidden">
-          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
-            <div>
-              <CardTitle>Detalhamento por DSEI</CardTitle>
-              <CardDescription>Visualização tabular completa dos indicadores cruzados.</CardDescription>
-            </div>
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <Input 
-                type="text" 
-                placeholder="Buscar DSEI..." 
-                className="pl-9 bg-white"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </CardHeader>
-          <div className="overflow-x-auto border-t border-slate-100">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead className="font-semibold text-slate-700">DSEI</TableHead>
-                  <TableHead className="text-right">População Indígena</TableHead>
-                  <TableHead className="text-right">Casos</TableHead>
-                  <TableHead className="text-right font-semibold">Incidência (10k)</TableHead>
-                  <TableHead className="text-right">Sem Tratamento Esgoto</TableHead>
-                  <TableHead className="text-right">Sem Estrutura</TableHead>
-                  <TableHead className="text-right">Risco Proxy</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredData.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
-                      Nenhum DSEI encontrado.
-                    </TableCell>
-                  </TableRow>
+                  <div className="p-4 rounded-lg bg-blue-50/50 border border-blue-100 flex items-start gap-4 hover:shadow-md transition-shadow">
+                    <div className="p-2 bg-blue-100 text-blue-600 rounded-md">
+                      <Trash2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-blue-900">{currentData.solid_waste_no_collection?.toFixed(1)}%</div>
+                      <div className="text-sm text-blue-700 leading-tight mt-1">sem informação ou sem coleta pública de resíduos sólidos</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bloco 4: Recomendação gerada por IA */}
+            <Card className="shadow-md border-indigo-200 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 xl:col-span-4 relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-indigo-700 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-500 animate-pulse" />
+                  Estratégia Recomendada por IA (Gemini)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingAi ? (
+                  <div className="flex items-center gap-3 text-indigo-400 py-6">
+                    <RefreshCcw className="w-5 h-5 animate-spin" />
+                    <span className="text-sm font-medium">Analisando contexto epidemiológico e sanitário...</span>
+                  </div>
                 ) : (
-                  filteredData.map(d => (
-                    <TableRow key={d.dsei} className="hover:bg-slate-50/50">
-                      <TableCell className="font-medium text-slate-900">{d.dsei}</TableCell>
-                      <TableCell className="text-right text-slate-600">{d.populacao.toLocaleString('pt-BR')}</TableCell>
-                      <TableCell className="text-right text-rose-600 font-medium">{d.dengue_cases}</TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant={d.incidence > 10 ? 'destructive' : 'secondary'}>
-                          {d.incidence}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right text-slate-600">{d.ceu_aberto}%</TableCell>
-                      <TableCell className="text-right text-slate-600">{d.sem_fossa}%</TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant={d.vulnerability_score > 50 ? 'outline' : 'default'} className={d.vulnerability_score > 50 ? 'text-rose-600 border-rose-200' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}>
-                          {d.vulnerability_score}%
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  <div className="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed py-2">
+                    {aiRecommendation ? (
+                      <p className="text-base sm:text-lg text-slate-800 font-medium">
+                        {aiRecommendation}
+                      </p>
+                    ) : (
+                      <p>Nenhuma recomendação disponível para este território.</p>
+                    )}
+                  </div>
                 )}
-              </TableBody>
-            </Table>
-          </div>
-        </Card>
+              </CardContent>
+            </Card>
 
-      </main>
+          </div>
+        ) : (
+          <div className="p-8 text-center bg-white rounded-lg border border-slate-200 text-slate-500">
+            Nenhum dado encontrado.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
