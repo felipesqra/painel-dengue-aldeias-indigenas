@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Activity, AlertTriangle, Droplet, Map, RefreshCcw, Sparkles, Trash2, Users } from "lucide-react";
 
 export default function Dashboard() {
-  const [data, setData] = useState<DSEIData[]>([]);
+  const [dataByYear, setDataByYear] = useState<Record<string, DSEIData[]>>({});
+  const [selectedYear, setSelectedYear] = useState<string>("2024");
   const [selectedDsei, setSelectedDsei] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [aiRecommendation, setAiRecommendation] = useState<string>("");
@@ -17,16 +18,34 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadData() {
       const result = await fetchDashboardData();
-      setData(result);
-      if (result.length > 0) {
-        setSelectedDsei(result[0].dsei);
+      setDataByYear(result);
+      
+      const years = Object.keys(result).sort((a, b) => Number(b) - Number(a));
+      if (years.length > 0) {
+        const defaultYear = years.includes("2024") ? "2024" : years[0];
+        setSelectedYear(defaultYear);
+        if (result[defaultYear] && result[defaultYear].length > 0) {
+          setSelectedDsei(result[defaultYear][0].dsei);
+        }
       }
       setLoading(false);
     }
     loadData();
   }, []);
 
-  const currentData = data.find((d) => d.dsei === selectedDsei);
+  const currentData = dataByYear[selectedYear]?.find((d) => d.dsei === selectedDsei);
+  
+  // Calcular tendência se houver ano anterior
+  let trend = "Estável";
+  let previousCases = 0;
+  if (selectedYear === "2024" && dataByYear["2023"]) {
+    const prevData = dataByYear["2023"].find(d => d.dsei === selectedDsei);
+    if (prevData) {
+      previousCases = prevData.dengue_cases;
+      if (currentData && currentData.dengue_cases > previousCases) trend = "Aumento";
+      if (currentData && currentData.dengue_cases < previousCases) trend = "Queda";
+    }
+  }
 
   useEffect(() => {
     async function fetchAi() {
@@ -38,7 +57,7 @@ export default function Dashboard() {
         casos: currentData.dengue_cases,
         sem_banheiro: currentData.sanitation_no_bathroom,
         sem_coleta_lixo: currentData.solid_waste_no_collection,
-        esgoto_resumo: \`\${currentData.sanitation_no_bathroom}% sem banheiro.\`
+        esgoto_resumo: `${currentData.sanitation_no_bathroom}% sem banheiro.`
       };
       
       const text = await generateAIRecommendation(promptData);
@@ -72,26 +91,23 @@ export default function Dashboard() {
             <select 
               value={selectedDsei}
               onChange={(e) => setSelectedDsei(e.target.value)}
-              className="flex h-10 w-full md:w-48 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+              className="flex h-10 w-full md:w-64 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
             >
-              {data.map((d) => (
+              {(dataByYear[selectedYear] || []).map((d) => (
                 <option key={d.dsei} value={d.dsei}>
                   DSEI {d.dsei}
                 </option>
               ))}
             </select>
-            {/* Mock Filters for UI presentation */}
-            <select disabled className="flex h-10 w-full md:w-32 items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm shadow-sm opacity-60 cursor-not-allowed">
-              <option>Estado (Todos)</option>
-            </select>
-            <select disabled className="flex h-10 w-full md:w-32 items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm shadow-sm opacity-60 cursor-not-allowed">
-              <option>Município (Todos)</option>
-            </select>
-            <select disabled className="flex h-10 w-full md:w-32 items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm shadow-sm opacity-60 cursor-not-allowed">
-              <option>Aldeia (Geral)</option>
-            </select>
-            <select disabled className="flex h-10 w-full md:w-32 items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm shadow-sm opacity-60 cursor-not-allowed">
-              <option>Período (2024)</option>
+            
+            <select 
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="flex h-10 w-full md:w-32 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+            >
+              {Object.keys(dataByYear).sort((a,b) => Number(b) - Number(a)).map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
             </select>
           </div>
         </header>
@@ -142,10 +158,18 @@ export default function Dashboard() {
                 </div>
                 <div className="mt-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Tendência recente</span>
-                    <span className="font-medium text-red-600 flex items-center gap-1">Aumento <Activity className="w-3 h-3" /></span>
+                    <span className="text-slate-500">Tendência ({selectedYear})</span>
+                    <span className={`font-medium flex items-center gap-1 ${trend === 'Aumento' ? 'text-red-600' : trend === 'Queda' ? 'text-green-600' : 'text-slate-600'}`}>
+                      {trend} <Activity className="w-3 h-3" />
+                    </span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  {selectedYear === "2024" && previousCases > 0 && (
+                     <div className="flex justify-between text-xs mt-1">
+                       <span className="text-slate-400">Casos no ano passado</span>
+                       <span className="text-slate-500">{previousCases}</span>
+                     </div>
+                  )}
+                  <div className="flex justify-between text-sm pt-2">
                     <span className="text-slate-500">Incidência (por 10k)</span>
                     <span className="font-medium text-slate-700">{currentData.dengue_incidence?.toFixed(1) || 0}</span>
                   </div>

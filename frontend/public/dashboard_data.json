@@ -1,5 +1,5 @@
 {
-  "dseis": [
+  "2024": [
     {
       "dsei": "ALTO RIO NEGRO",
       "populacao": 29500,
@@ -69,6 +69,78 @@
       "vulnerability_score": 100.0,
       "dengue_cases": 21,
       "incidence": 6.77
+    }
+  ],
+  "2023": [
+    {
+      "dsei": "ALTO RIO NEGRO",
+      "populacao": 29500,
+      "ceu_aberto": 0.0,
+      "sem_fossa": 97.62,
+      "queima_lixo": 89.57,
+      "vulnerability_score": 62.39,
+      "dengue_cases": 12,
+      "incidence": 4.0
+    },
+    {
+      "dsei": "KAIAPÓ DO MATO GROSSO",
+      "populacao": 4800,
+      "ceu_aberto": 0.0,
+      "sem_fossa": 100.0,
+      "queima_lixo": 100.0,
+      "vulnerability_score": 66.67,
+      "dengue_cases": 2,
+      "incidence": 4.1
+    },
+    {
+      "dsei": "KAIAPÓ DO PARÁ",
+      "populacao": 6700,
+      "ceu_aberto": 0.0,
+      "sem_fossa": 86.11,
+      "queima_lixo": 93.06,
+      "vulnerability_score": 59.72,
+      "dengue_cases": 3,
+      "incidence": 4.5
+    },
+    {
+      "dsei": "VALE DO JAVARI",
+      "populacao": 6200,
+      "ceu_aberto": 74.24,
+      "sem_fossa": 100.0,
+      "queima_lixo": 100.0,
+      "vulnerability_score": 91.41,
+      "dengue_cases": 8,
+      "incidence": 12.9
+    },
+    {
+      "dsei": "XAVANTE",
+      "populacao": 25000,
+      "ceu_aberto": 100.0,
+      "sem_fossa": 100.0,
+      "queima_lixo": 94.03,
+      "vulnerability_score": 98.01,
+      "dengue_cases": 15,
+      "incidence": 6.0
+    },
+    {
+      "dsei": "XINGU",
+      "populacao": 8000,
+      "ceu_aberto": 0.0,
+      "sem_fossa": 99.21,
+      "queima_lixo": 100.0,
+      "vulnerability_score": 66.4,
+      "dengue_cases": 25,
+      "incidence": 31.2
+    },
+    {
+      "dsei": "YANOMAMI",
+      "populacao": 31000,
+      "ceu_aberto": 100.0,
+      "sem_fossa": 100.0,
+      "queima_lixo": 100.0,
+      "vulnerability_score": 100.0,
+      "dengue_cases": 10,
+      "incidence": 3.2
     }
   ]
 }
