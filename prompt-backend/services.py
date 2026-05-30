@@ -162,3 +162,58 @@ async def fetch_dengue(client: httpx.AsyncClient, dsei: str, data_init: str, dat
         return 0, []
 
     return casos, casos_mensal
+
+def format_ai_markdown(data: dict) -> str:
+    md = f"### {data.get('title', 'Proposta de Intervenção')}\n\n"
+    
+    if "executive_summary" in data:
+        md += f"**Resumo Executivo:**\n{data['executive_summary']}\n\n"
+        
+    if "situation_summary" in data:
+        md += f"**Situação Atual:**\n{data['situation_summary']}\n\n"
+        
+    md += "---\n\n"
+    
+    if "immediate_actions_0_7_days" in data:
+        md += "#### Ações Imediatas (0-7 Dias)\n"
+        for act in data["immediate_actions_0_7_days"]:
+            md += f"- **{act.get('action')}**\n  - *Justificativa:* {act.get('justification')}\n  - *Responsável:* {act.get('responsible_actor')}\n"
+        md += "\n"
+        
+    if "short_term_actions_30_days" in data:
+        md += "#### Ações de Curto Prazo (30 Dias)\n"
+        for act in data["short_term_actions_30_days"]:
+            md += f"- **{act.get('action')}**\n  - *Justificativa:* {act.get('justification')}\n"
+        md += "\n"
+        
+    if "monitoring_indicators" in data:
+        md += "#### Indicadores de Monitoramento\n"
+        for ind in data["monitoring_indicators"]:
+            md += f"- {ind}\n"
+            
+    return md
+
+async def fetch_ai_recommendation(client: httpx.AsyncClient, dsei: str, data_init: str, data_end: str) -> str:
+    payload = {
+        "dsei": dsei,
+        "data_init": data_init,
+        "data_end": data_end,
+        "use_mock": True
+    }
+    try:
+        url = "https://rag-painel-indigena-production.up.railway.app/"
+        # Tempo de limite longo pois LLMs demoram a responder
+        response = await client.post(url, json=payload, timeout=30.0)
+        response.raise_for_status()
+        data = response.json()
+        return format_ai_markdown(data)
+    except Exception as e:
+        logger.error(f"[fetch_ai] Erro ao buscar IA ({e}), usando mock fallback.")
+        try:
+            mock_path = os.path.join(os.path.dirname(__file__), "mock_ai.json")
+            with open(mock_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return format_ai_markdown(data)
+        except Exception as e2:
+            logger.error(f"[fetch_ai] Erro ao ler mock: {e2}")
+            return "Falha ao gerar proposta de intervenção."

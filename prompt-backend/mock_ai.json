@@ -1,0 +1,264 @@
+{
+  "title": "Proposta de Intervenção para Prevenção e Controle da Dengue no DSEI Yanomami (Janeiro de 2024)",
+  "situation_summary": "No DSEI Yanomami, 90% das aldeias não possuem coleta seletiva, resultando na exposição de recipientes que podem se tornar criadouros do Aedes aegypti. Além disso, não há logística reversa (0% das aldeias), o que contribui para o acúmulo de materiais de difícil descarte como pneus e embalagens. Em 70% das aldeias, a prática de queima de resíduos é comum, indicando a falta de alternativas de descarte. A responsabilidade pela coleta de resíduos é complexa, com 15% das aldeias tendo a prefeitura como principal responsável, 20% o DSEI e 40% a própria aldeia. Há falta de informação sobre os responsáveis em 25% das aldeias, o que representa um risco operacional. Em relação ao saneamento básico, 60% das aldeias carecem de estrutura básica, e há 50% de falta de informação sobre o tipo de tratamento de esgoto. Casos de dengue (CID A90) foram notificados em 15/01/2024 no estado de Roraima (RR), apresentando sintomas como febre, mialgia e sinal de alarme de vômito, com hospitalização e evolução para cura.",
+  "local_indicators": {
+    "dengue": [
+      "Um caso de dengue (CID A90) foi notificado em 15/01/2024.",
+      "O caso notificado ocorreu em Roraima (RR), município 140010, com residência no mesmo local.",
+      "Sintomas como febre e mialgia foram registrados.",
+      "Sinal de alarme de vômito foi presente no caso.",
+      "O paciente foi hospitalizado e teve evolução para cura."
+    ],
+    "water_supply": [],
+    "solid_waste": [
+      "90% das aldeias não possuem coleta seletiva implantada, o que pode levar à exposição de recipientes como garrafas, latas e plásticos.",
+      "0% das aldeias realizam logística reversa, o que é crítico para o descarte de pneus e outros recipientes que podem ser criadouros.",
+      "Em 70% das aldeias, há a prática de queima de resíduos pela comunidade, sugerindo falta de alternativas de coleta e descarte."
+    ],
+    "sanitation": [
+      "60% das aldeias não possuem estrutura de saneamento básico.",
+      "Não há informação sobre o tipo de tratamento de esgoto em 50% das aldeias."
+    ],
+    "governance": [
+      "O DSEI Yanomami é a unidade territorial de planejamento.",
+      "A prefeitura é a principal responsável pela coleta e destinação de resíduos sólidos em 15% das aldeias.",
+      "O DSEI é o principal responsável pela coleta e destinação de resíduos sólidos em 20% das aldeias.",
+      "A própria aldeia é a principal responsável pela coleta e destinação de resíduos sólidos em 40% das aldeias.",
+      "Não há informação sobre os responsáveis pela coleta e destinação de resíduos sólidos em 25% das aldeias.",
+      "A falta de coleta seletiva em 90% das aldeias e a ausência de logística reversa em 100% das aldeias indicam lacunas na governança de resíduos."
+    ],
+    "missing_information": [
+      "Não há informação sobre os responsáveis pela coleta e destinação de resíduos sólidos em 25% das aldeias.",
+      "Não há informação sobre o tipo de tratamento de esgoto em 50% das aldeias."
+    ]
+  },
+  "dengue_risk_interpretation": {
+    "directly_related_to_dengue": [
+      "90% das aldeias não possuem coleta seletiva implantada, o que resulta na exposição de garrafas, latas, plásticos e outras embalagens que podem acumular água e se tornar criadouros do Aedes aegypti.",
+      "0% das aldeias realizam logística reversa para materiais como pneus e outros recipientes de difícil descarte, que são potenciais criadouros do mosquito da dengue."
+    ],
+    "important_sanitation_problems_but_not_direct_dengue_risk": [
+      "60% das aldeias não possuem estrutura de saneamento básico, indicando uma vulnerabilidade social e ambiental geral que, embora não seja um risco direto para a dengue, contribui para um ambiente propício a diversas doenças.",
+      "70% das aldeias praticam a queima de resíduos, o que pode sinalizar a ausência de coleta regular ou alternativas de descarte, mas não é um criadouro direto para o mosquito Aedes aegypti. Contudo, é um problema de saúde ambiental."
+    ],
+    "insufficient_information_requiring_local_validation": [
+      "Não há informação sobre o tipo de tratamento de esgoto em 50% das aldeias, o que é uma lacuna significativa para o planejamento e a avaliação de riscos sanitários.",
+      "A responsabilidade pela coleta e destinação de resíduos sólidos é desconhecida em 25% das aldeias, necessitando de validação local para direcionar as ações."
+    ]
+  },
+  "technical_evidence": [
+    {
+      "document": "SABERES, ACTITUDES Y PRÁCTICAS DE LOS INDÍGENAS DE UN.pdf",
+      "page": "53",
+      "evidence_summary": "O documento destaca a importância da participação comunitária para o desenvolvimento de uma estratégia integrada de prevenção do dengue.",
+      "how_it_supports_the_intervention": "Suporta a inclusão de ações que promovam o engajamento das comunidades indígenas na gestão de resíduos e na identificação de criadouros, valorizando o conhecimento local e a autogestão da aldeia como ator responsável."
+    },
+    {
+      "document": "Prácticas ancestrales para el control del dengue en una comunidad.pdf",
+      "page": "4",
+      "evidence_summary": "As comunidades indígenas são grupos prioritários de atenção em saúde devido à vulnerabilidade social e histórica. A recuperação de práticas ancestrais é crucial para o cuidado em saúde, e o controle do dengue exige abordagens integrais com participação familiar ativa, além de alternativas aos pesticidas.",
+      "how_it_supports_the_intervention": "Fundamenta a necessidade de abordar o DSEI Yanomami como grupo prioritário, enfatizando o respeito e a integração de práticas culturais e ancestrais no controle da dengue, especialmente na gestão de resíduos e na busca por soluções não-químicas, dada a auto-responsabilidade da aldeia na gestão de resíduos em 40% dos casos."
+    },
+    {
+      "document": "Prácticas ancestrales para el control del dengue en una comunidad.pdf",
+      "page": "10",
+      "evidence_summary": "O estudo de etnobotânica e o respeito aos médicos tradicionais são vitais para interpretar práticas preventivas e curativas. O consumo de plantas medicinais, como balsamina, corrata e limoncillo, é reconhecido cientificamente por seus atributos no manejo do dengue.",
+      "how_it_supports_the_intervention": "Justifica a inclusão de ações que valorizem e integrem os saberes tradicionais sobre plantas medicinais e as figuras dos médicos tradicionais (Jaibanás) nas estratégias de saúde e no cuidado com a doença, complementando as ações de controle vetorial."
+    }
+  ],
+  "general_objective": "Reduzir a incidência da dengue no DSEI Yanomami, por meio da melhoria da gestão de resíduos sólidos, do fortalecimento da infraestrutura de saneamento básico e da integração de práticas comunitárias e ancestrais de prevenção, com foco na eliminação de criadouros do Aedes aegypti e na promoção da saúde ambiental.",
+  "immediate_actions_0_7_days": [
+    {
+      "action": "Realizar levantamento e validação local das aldeias sem informação sobre responsáveis pela coleta de resíduos e tipo de tratamento de esgoto.",
+      "justification": "25% das aldeias não têm informação sobre responsáveis pela coleta de resíduos e 50% não têm sobre tratamento de esgoto, o que impede o planejamento eficaz e a alocação de responsabilidades.",
+      "responsible_actor": "Equipe de Saneamento do DSEI Yanomami e AISAN",
+      "supporting_actors": [
+        "Lideranças indígenas locais"
+      ],
+      "validation_needed": true
+    },
+    {
+      "action": "Organizar mutirões de limpeza emergenciais e remoção de recipientes que possam acumular água nas aldeias com maior risco.",
+      "justification": "90% das aldeias sem coleta seletiva e 0% com logística reversa indicam alta presença de potenciais criadouros. A notificação de casos de dengue exige resposta rápida para conter a proliferação do mosquito.",
+      "responsible_actor": "Comunidade Indígena (com apoio do DSEI)",
+      "supporting_actors": [
+        "AIS",
+        "AISAN",
+        "Município (Serviços de Limpeza)"
+      ],
+      "validation_needed": false
+    }
+  ],
+  "short_term_actions_30_days": [
+    {
+      "action": "Estabelecer pontos de coleta temporários para materiais recicláveis e descarte adequado de resíduos que possam acumular água nas aldeias sem coleta seletiva.",
+      "justification": "A ausência de coleta seletiva em 90% das aldeias e de logística reversa em 100% das aldeias resulta em acúmulo de recipientes. Pontos temporários minimizam o risco imediato enquanto soluções permanentes são desenvolvidas.",
+      "responsible_actor": "DSEI Yanomami (Logística e Saneamento)",
+      "supporting_actors": [
+        "Lideranças indígenas",
+        "Município"
+      ],
+      "validation_needed": false
+    },
+    {
+      "action": "Realizar campanhas de educação em saúde sobre a dengue, focando na identificação e eliminação de criadouros, com material bilíngue e adaptado culturalmente.",
+      "justification": "A participação comunitária é essencial na prevenção da dengue. A comunicação efetiva promove a autogestão da comunidade na prevenção, que já é responsável por 40% da gestão de resíduos.",
+      "responsible_actor": "Equipes de Saúde Indígena (AIS/AISAN)",
+      "supporting_actors": [
+        "Lideranças indígenas",
+        "DSEI (Educação em Saúde)"
+      ],
+      "validation_needed": false
+    },
+    {
+      "action": "Iniciar diálogo com a gestão municipal para formalizar acordos de cooperação técnica e logística para coleta regular de resíduos nas aldeias, especialmente em áreas de difícil acesso.",
+      "justification": "A prefeitura é responsável pela coleta em 15% das aldeias, indicando um potencial de parceria que precisa ser expandido para cobrir as áreas sem coleta adequada e oferecer alternativas à queima de resíduos (70% das aldeias).",
+      "responsible_actor": "DSEI Yanomami (Coordenação)",
+      "supporting_actors": [
+        "Gestão Municipal",
+        "Funai"
+      ],
+      "validation_needed": false
+    }
+  ],
+  "medium_term_actions_90_days": [
+    {
+      "action": "Elaborar um plano de gestão integrada de resíduos sólidos para o DSEI Yanomami, incluindo a implementação gradual de coleta seletiva, logística reversa para materiais específicos (como pneus e eletrônicos) e alternativas para a prática de queima.",
+      "justification": "90% das aldeias sem coleta seletiva, 0% sem logística reversa e 70% com queima de resíduos exigem uma solução sistêmica e sustentável. Um plano abrangente é crucial para abordar esses desafios de forma eficaz.",
+      "responsible_actor": "DSEI Yanomami (Saneamento e Meio Ambiente)",
+      "supporting_actors": [
+        "Conselho Distrital de Saúde Indígena (Condisi)",
+        "Município",
+        "Funai",
+        "Comunidades Indígenas"
+      ],
+      "validation_needed": true
+    },
+    {
+      "action": "Mapear as necessidades de infraestrutura de saneamento básico (acesso a água e esgoto) e iniciar projetos-piloto de melhoria em aldeias prioritárias.",
+      "justification": "60% das aldeias sem estrutura de saneamento básico indicam uma vulnerabilidade sanitária significativa, mesmo que não seja um risco direto para a dengue, impacta a saúde geral e o bem-estar.",
+      "responsible_actor": "DSEI Yanomami (Engenharia de Saúde Pública)",
+      "supporting_actors": [
+        "Funasa",
+        "Lideranças indígenas"
+      ],
+      "validation_needed": true
+    },
+    {
+      "action": "Promover o intercâmbio de conhecimentos entre as equipes de saúde e as lideranças indígenas sobre práticas ancestrais de manejo de plantas e controle de vetores, visando integrar abordagens culturais na prevenção da dengue.",
+      "justification": "Documentos técnicos reforçam a importância da valorização das práticas ancestrais e do conhecimento etnobotânico para o controle da dengue. Isso fortalece a participação comunitária e a sustentabilidade das ações.",
+      "responsible_actor": "Equipes de Saúde Indígena (AIS/AISAN) e DSEI (Educação em Saúde)",
+      "supporting_actors": [
+        "Médicos tradicionais (Jaibanás)",
+        "Lideranças indígenas"
+      ],
+      "validation_needed": false
+    }
+  ],
+  "suggested_responsibilities": [
+    {
+      "action": "Mapeamento e Validação de Responsabilidades e Saneamento",
+      "main_responsible": "Equipe de Saneamento do DSEI Yanomami",
+      "supporters": [
+        "AISAN",
+        "Lideranças indígenas locais"
+      ],
+      "basis_in_data": "25% das aldeias sem informação sobre responsáveis pela coleta e 50% sem informação sobre tratamento de esgoto.",
+      "observation": "É crucial a participação das lideranças para garantir a acurácia dos dados e o engajamento local."
+    },
+    {
+      "action": "Organização de Mutirões de Limpeza",
+      "main_responsible": "Comunidade Indígena",
+      "supporters": [
+        "AIS",
+        "AISAN",
+        "DSEI (logística)",
+        "Município"
+      ],
+      "basis_in_data": "40% das aldeias já são as principais responsáveis pela gestão de resíduos, e 90% não têm coleta seletiva.",
+      "observation": "A comunidade já pratica a autogestão; o papel do DSEI e município é oferecer suporte e recursos."
+    },
+    {
+      "action": "Implementação de Pontos de Coleta Temporários",
+      "main_responsible": "DSEI Yanomami (Logística e Saneamento)",
+      "supporters": [
+        "Lideranças indígenas",
+        "Município"
+      ],
+      "basis_in_data": "90% das aldeias sem coleta seletiva e 0% sem logística reversa.",
+      "observation": "Apoio do município é fundamental para a destinação final dos resíduos coletados."
+    },
+    {
+      "action": "Campanhas de Educação em Saúde Culturalmente Adaptadas",
+      "main_responsible": "Equipes de Saúde Indígena (AIS/AISAN)",
+      "supporters": [
+        "Lideranças indígenas",
+        "DSEI (Educação em Saúde)"
+      ],
+      "basis_in_data": "Necessidade de envolver a comunidade para a prevenção do dengue, conforme evidência técnica sobre participação comunitária.",
+      "observation": "Utilizar métodos e materiais que respeitem e integrem os saberes locais."
+    },
+    {
+      "action": "Diálogo com o Município para Coleta Regular de Resíduos",
+      "main_responsible": "DSEI Yanomami (Coordenação)",
+      "supporters": [
+        "Gestão Municipal",
+        "Funai"
+      ],
+      "basis_in_data": "A prefeitura é principal responsável pela coleta em 15% das aldeias, indicando um potencial de expansão.",
+      "observation": "Buscar formalização através de termos de cooperação ou convênios."
+    },
+    {
+      "action": "Elaboração de Plano de Gestão Integrada de Resíduos",
+      "main_responsible": "DSEI Yanomami (Saneamento e Meio Ambiente)",
+      "supporters": [
+        "Condisi",
+        "Município",
+        "Funai",
+        "Comunidades Indígenas"
+      ],
+      "basis_in_data": "Alta porcentagem de aldeias sem coleta seletiva, logística reversa e com queima de resíduos.",
+      "observation": "O plano deve ser participativo e considerar as especificidades territoriais do DSEI Yanomami."
+    },
+    {
+      "action": "Mapeamento e Projetos-Piloto de Saneamento Básico",
+      "main_responsible": "DSEI Yanomami (Engenharia de Saúde Pública)",
+      "supporters": [
+        "Funasa",
+        "Lideranças indígenas"
+      ],
+      "basis_in_data": "60% das aldeias sem estrutura de saneamento básico.",
+      "observation": "Priorizar aldeias com maior vulnerabilidade e risco de doenças de veiculação hídrica."
+    },
+    {
+      "action": "Intercâmbio de Conhecimentos sobre Práticas Ancestrais",
+      "main_responsible": "Equipes de Saúde Indígena (AIS/AISAN)",
+      "supporters": [
+        "Médicos tradicionais (Jaibanás)",
+        "Lideranças indígenas",
+        "DSEI (Educação em Saúde)"
+      ],
+      "basis_in_data": "Evidências técnicas que apoiam a integração de práticas ancestrais e etnobotânica no controle da dengue.",
+      "observation": "Promover o diálogo intercultural e o respeito aos saberes tradicionais."
+    }
+  ],
+  "monitoring_indicators": [
+    "Percentual de aldeias com coleta seletiva de resíduos implantada.",
+    "Percentual de aldeias com pontos de coleta temporários para descarte adequado de recipientes.",
+    "Número de mutirões de limpeza realizados e quantidade de resíduos removidos.",
+    "Redução do índice de infestação do Aedes aegypti (se dados entomológicos estiverem disponíveis).",
+    "Número de casos de dengue notificados no DSEI Yanomami (tendência).",
+    "Percentual de aldeias com informações validadas sobre responsáveis pela coleta de resíduos e tratamento de esgoto.",
+    "Número de acordos de cooperação técnica estabelecidos com municípios para a gestão de resíduos.",
+    "Participação das comunidades indígenas nas ações de prevenção e controle da dengue.",
+    "Número de projetos-piloto de melhoria de saneamento básico iniciados."
+  ],
+  "data_limitations": [
+    "Não há informação detalhada sobre a cobertura ou qualidade do abastecimento de água nas aldeias, o que pode influenciar o armazenamento doméstico e a formação de criadouros.",
+    "Informações sobre a responsabilidade pela coleta e destinação de resíduos sólidos estão ausentes em 25% das aldeias, exigindo validação local para um planejamento preciso.",
+    "Não há dados específicos sobre o tipo de tratamento de esgoto em 50% das aldeias, limitando a compreensão completa dos riscos sanitários.",
+    "Não foram fornecidos dados entomológicos (ex: LIRAa, Breteau), o que impede uma avaliação direta do risco de infestação do Aedes aegypti no território.",
+    "Os dados epidemiológicos fornecidos referem-se a um único caso notificado em janeiro de 2024, o que limita a análise de tendências e a abrangência da situação epidemiológica da dengue no DSEI Yanomami como um todo."
+  ],
+  "executive_summary": "A presente proposta visa abordar o risco de dengue no DSEI Yanomami, identificado principalmente pela ausência de coleta seletiva (90% das aldeias) e de logística reversa (0%), resultando no acúmulo de recipientes propícios ao mosquito Aedes aegypti. Dados epidemiológicos confirmam a ocorrência de casos de dengue em janeiro de 2024. Há também importantes lacunas na infraestrutura de saneamento (60% das aldeias sem estrutura básica) e na informação sobre tratamento de esgoto e responsabilidades pela gestão de resíduos. A autogestão de resíduos pelas aldeias (40%) e a prática da queima (70%) sublinham a necessidade de apoio e alternativas sustentáveis. O objetivo geral é reduzir a incidência da dengue por meio da melhoria da gestão de resíduos, fortalecimento do saneamento e integração de práticas comunitárias e ancestrais. As ações propostas incluem mutirões imediatos, estabelecimento de pontos de coleta temporários, campanhas educativas, diálogo com municípios para coleta regular e, a médio prazo, a elaboração de um plano de gestão integrada de resíduos e projetos-piloto de saneamento. A validação local das informações é uma prioridade imediata. A proposta valoriza a participação comunitária e os saberes tradicionais, conforme evidenciado em literatura técnica, e reconhece a complexidade da responsabilidade pela gestão de resíduos, sugerindo cooperação entre DSEI, comunidades e municípios. O monitoramento será feito pela implantação de coleta seletiva, redução de criadouros e controle de casos de dengue."
+}

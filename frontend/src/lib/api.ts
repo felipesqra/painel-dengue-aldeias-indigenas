@@ -93,7 +93,7 @@ export async function fetchDashboardData(): Promise<Record<string, DSEIData[]>> 
           sanitation_no_bathroom: parseFloat(annual.esgotamento_sanitario?.exist_estrut_perc_ald_sem_estrutura?.replace('%','')) || 0,
           solid_waste_no_collection: parseFloat(annual.residuos?.pratica_de_queima_de_residuos_pela_comunidade_percentual_de_aldeias_que_possuem_a_pratica_de_queima_dos_residuos?.replace('%','')) || 0,
           dengue_monthly: annual.casos_dengue_mensal || [],
-          ai_recommendation: "",
+          ai_recommendation: annual.ai_recommendation || "",
           trend: trendValue,
         });
       }

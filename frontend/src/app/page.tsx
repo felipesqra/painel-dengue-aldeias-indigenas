@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Activity, AlertTriangle, Droplet, Map as MapIcon, RefreshCcw, Sparkles, Trash2, Users } from "lucide-react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import dynamic from "next/dynamic";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const MapChart = dynamic(() => import("@/components/MapChart"), { ssr: false });
 
@@ -15,6 +17,23 @@ export default function Dashboard() {
   const [selectedYear, setSelectedYear] = useState<string>("2026");
   const [selectedDsei, setSelectedDsei] = useState<string>("YANOMAMI");
   const [loading, setLoading] = useState(true);
+  const [loadingPercent, setLoadingPercent] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (loading) {
+      setLoadingPercent(0);
+      interval = setInterval(() => {
+        setLoadingPercent((prev) => {
+          if (prev >= 99) return 99;
+          return prev + Math.floor(Math.random() * 5) + 1;
+        });
+      }, 500);
+    } else {
+      setLoadingPercent(100);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   useEffect(() => {
     async function loadData() {
@@ -38,10 +57,11 @@ export default function Dashboard() {
   const trend = currentData?.trend || "Estabilidade";
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 space-y-4">
         <div className="animate-spin text-primary">
           <RefreshCcw size={32} />
         </div>
+        <p className="text-slate-500 text-sm font-medium">Sintetizando IA e processando dados... {loadingPercent}%</p>
       </div>
     );
   }
@@ -237,11 +257,11 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed py-2">
+                <div className="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed py-2 overflow-auto max-h-[400px]">
                   {currentData.ai_recommendation ? (
-                    <p className="text-base sm:text-lg text-slate-800 font-medium">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {currentData.ai_recommendation}
-                    </p>
+                    </ReactMarkdown>
                   ) : (
                     <p className="text-slate-500 italic">Nenhuma recomendação processada pelo servidor central para este território.</p>
                   )}
