@@ -8,7 +8,14 @@
       "queima_lixo": 89.57,
       "vulnerability_score": 62.39,
       "dengue_cases": 17,
-      "incidence": 5.76
+      "incidence": 5.76,
+      "dengue_daily": [
+        {"date": "2024-01-01", "cases": 2},
+        {"date": "2024-01-02", "cases": 5},
+        {"date": "2024-01-03", "cases": 3},
+        {"date": "2024-01-04", "cases": 7}
+      ],
+      "ai_recommendation": "Mock: Estratégia recomendada para ALTO RIO NEGRO foca na mobilização comunitária imediata devido à alta defasagem de fossas sépticas (97.62%)."
     },
     {
       "dsei": "KAIAPÓ DO MATO GROSSO",
@@ -18,47 +25,14 @@
       "queima_lixo": 100.0,
       "vulnerability_score": 66.67,
       "dengue_cases": 0,
-      "incidence": 0.0
-    },
-    {
-      "dsei": "KAIAPÓ DO PARÁ",
-      "populacao": 6700,
-      "ceu_aberto": 0.0,
-      "sem_fossa": 86.11,
-      "queima_lixo": 93.06,
-      "vulnerability_score": 59.72,
-      "dengue_cases": 6,
-      "incidence": 8.96
-    },
-    {
-      "dsei": "VALE DO JAVARI",
-      "populacao": 6200,
-      "ceu_aberto": 74.24,
-      "sem_fossa": 100.0,
-      "queima_lixo": 100.0,
-      "vulnerability_score": 91.41,
-      "dengue_cases": 13,
-      "incidence": 20.97
-    },
-    {
-      "dsei": "XAVANTE",
-      "populacao": 25000,
-      "ceu_aberto": 100.0,
-      "sem_fossa": 100.0,
-      "queima_lixo": 94.03,
-      "vulnerability_score": 98.01,
-      "dengue_cases": 29,
-      "incidence": 11.6
-    },
-    {
-      "dsei": "XINGU",
-      "populacao": 8000,
-      "ceu_aberto": 0.0,
-      "sem_fossa": 99.21,
-      "queima_lixo": 100.0,
-      "vulnerability_score": 66.4,
-      "dengue_cases": 18,
-      "incidence": 22.5
+      "incidence": 0.0,
+      "dengue_daily": [
+        {"date": "2024-01-01", "cases": 0},
+        {"date": "2024-01-02", "cases": 0},
+        {"date": "2024-01-03", "cases": 0},
+        {"date": "2024-01-04", "cases": 0}
+      ],
+      "ai_recommendation": "Mock: Para KAIAPÓ DO MATO GROSSO, não há casos prováveis no momento. A prioridade é prevenção primária e construção de infraestrutura (100% defasagem)."
     },
     {
       "dsei": "YANOMAMI",
@@ -68,7 +42,14 @@
       "queima_lixo": 100.0,
       "vulnerability_score": 100.0,
       "dengue_cases": 21,
-      "incidence": 6.77
+      "incidence": 6.77,
+      "dengue_daily": [
+        {"date": "2024-01-01", "cases": 4},
+        {"date": "2024-01-02", "cases": 8},
+        {"date": "2024-01-03", "cases": 3},
+        {"date": "2024-01-04", "cases": 6}
+      ],
+      "ai_recommendation": "Mock: Em território YANOMAMI, a alta vulnerabilidade (100% sem saneamento) exige mutirão urgente de agentes de saúde."
     }
   ],
   "2023": [
@@ -80,7 +61,13 @@
       "queima_lixo": 89.57,
       "vulnerability_score": 62.39,
       "dengue_cases": 12,
-      "incidence": 4.0
+      "incidence": 4.0,
+      "dengue_daily": [
+        {"date": "2023-01-01", "cases": 5},
+        {"date": "2023-01-02", "cases": 4},
+        {"date": "2023-01-03", "cases": 3}
+      ],
+      "ai_recommendation": "Mock: Em 2023 a situação estava controlada mas requerendo atenção."
     },
     {
       "dsei": "KAIAPÓ DO MATO GROSSO",
@@ -90,47 +77,12 @@
       "queima_lixo": 100.0,
       "vulnerability_score": 66.67,
       "dengue_cases": 2,
-      "incidence": 4.1
-    },
-    {
-      "dsei": "KAIAPÓ DO PARÁ",
-      "populacao": 6700,
-      "ceu_aberto": 0.0,
-      "sem_fossa": 86.11,
-      "queima_lixo": 93.06,
-      "vulnerability_score": 59.72,
-      "dengue_cases": 3,
-      "incidence": 4.5
-    },
-    {
-      "dsei": "VALE DO JAVARI",
-      "populacao": 6200,
-      "ceu_aberto": 74.24,
-      "sem_fossa": 100.0,
-      "queima_lixo": 100.0,
-      "vulnerability_score": 91.41,
-      "dengue_cases": 8,
-      "incidence": 12.9
-    },
-    {
-      "dsei": "XAVANTE",
-      "populacao": 25000,
-      "ceu_aberto": 100.0,
-      "sem_fossa": 100.0,
-      "queima_lixo": 94.03,
-      "vulnerability_score": 98.01,
-      "dengue_cases": 15,
-      "incidence": 6.0
-    },
-    {
-      "dsei": "XINGU",
-      "populacao": 8000,
-      "ceu_aberto": 0.0,
-      "sem_fossa": 99.21,
-      "queima_lixo": 100.0,
-      "vulnerability_score": 66.4,
-      "dengue_cases": 25,
-      "incidence": 31.2
+      "incidence": 4.1,
+      "dengue_daily": [
+        {"date": "2023-01-01", "cases": 1},
+        {"date": "2023-01-02", "cases": 1}
+      ],
+      "ai_recommendation": "Mock: Estratégia de estabilidade para Kaiapó no ano anterior."
     },
     {
       "dsei": "YANOMAMI",
@@ -140,7 +92,13 @@
       "queima_lixo": 100.0,
       "vulnerability_score": 100.0,
       "dengue_cases": 10,
-      "incidence": 3.2
+      "incidence": 3.2,
+      "dengue_daily": [
+        {"date": "2023-01-01", "cases": 3},
+        {"date": "2023-01-02", "cases": 4},
+        {"date": "2023-01-03", "cases": 3}
+      ],
+      "ai_recommendation": "Mock: Início das atividades intensivas na terra Yanomami em 2023."
     }
   ]
 }

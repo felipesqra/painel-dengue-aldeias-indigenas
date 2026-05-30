@@ -1,19 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchDashboardData, generateAIRecommendation, DSEIData } from "@/lib/api";
+import { fetchDashboardData, DSEIData } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Activity, AlertTriangle, Droplet, Map, RefreshCcw, Sparkles, Trash2, Users } from "lucide-react";
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export default function Dashboard() {
   const [dataByYear, setDataByYear] = useState<Record<string, DSEIData[]>>({});
   const [selectedYear, setSelectedYear] = useState<string>("2024");
   const [selectedDsei, setSelectedDsei] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [aiRecommendation, setAiRecommendation] = useState<string>("");
-  const [loadingAi, setLoadingAi] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -46,26 +44,6 @@ export default function Dashboard() {
       if (currentData && currentData.dengue_cases < previousCases) trend = "Queda";
     }
   }
-
-  useEffect(() => {
-    async function fetchAi() {
-      if (!currentData) return;
-      setLoadingAi(true);
-      
-      const promptData = {
-        dsei: currentData.dsei,
-        casos: currentData.dengue_cases,
-        sem_banheiro: currentData.sanitation_no_bathroom,
-        sem_coleta_lixo: currentData.solid_waste_no_collection,
-        esgoto_resumo: `${currentData.sanitation_no_bathroom}% sem banheiro.`
-      };
-      
-      const text = await generateAIRecommendation(promptData);
-      setAiRecommendation(text);
-      setLoadingAi(false);
-    }
-    fetchAi();
-  }, [currentData]);
 
   if (loading) {
     return (
@@ -124,7 +102,7 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-slate-800 mb-1 truncate">
+                <div className="text-2xl font-bold text-slate-800 mb-1 truncate" title={currentData.dsei}>
                   {currentData.dsei}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600 mt-4">
@@ -138,7 +116,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Bloco 2: Situação da dengue */}
+            {/* Bloco 2: Situação da dengue (Atualizado para gráfico diário) */}
             <Card className="shadow-sm border-slate-200 bg-white relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-16 h-16 bg-red-50 rounded-bl-full -z-10 group-hover:scale-150 transition-transform duration-500" />
               <CardHeader className="pb-2">
@@ -147,33 +125,54 @@ export default function Dashboard() {
                     <Activity className="w-4 h-4" />
                     Situação da Dengue
                   </span>
-                  <Badge variant={currentData.dengue_incidence > 50 ? "destructive" : "default"} className="font-normal shadow-sm">
-                    {currentData.dengue_incidence > 50 ? "Prioridade: Alta" : "Prioridade: Normal"}
+                  <Badge 
+                    variant={trend === "Aumento" ? "destructive" : "default"} 
+                    className="font-normal shadow-sm"
+                  >
+                    {trend === "Aumento" ? "Prioridade: Alta" : "Prioridade: Normal"}
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-slate-800">
-                  {currentData.dengue_cases} <span className="text-sm font-normal text-slate-500">casos prováveis</span>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Tendência ({selectedYear})</span>
-                    <span className={`font-medium flex items-center gap-1 ${trend === 'Aumento' ? 'text-red-600' : trend === 'Queda' ? 'text-green-600' : 'text-slate-600'}`}>
-                      {trend} <Activity className="w-3 h-3" />
-                    </span>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-slate-800">
+                      {currentData.dengue_cases}
+                    </div>
+                    <div className="text-xs text-slate-500 font-medium">casos no período</div>
                   </div>
-                  {selectedYear === "2024" && previousCases > 0 && (
-                     <div className="flex justify-between text-xs mt-1">
-                       <span className="text-slate-400">Casos no ano passado</span>
-                       <span className="text-slate-500">{previousCases}</span>
-                     </div>
-                  )}
-                  <div className="flex justify-between text-sm pt-2">
-                    <span className="text-slate-500">Incidência (por 10k)</span>
-                    <span className="font-medium text-slate-700">{currentData.dengue_incidence?.toFixed(1) || 0}</span>
+                  <div className="text-right">
+                    <div className={`text-sm font-semibold flex items-center gap-1 justify-end ${trend === 'Aumento' ? 'text-red-600' : trend === 'Queda' ? 'text-green-600' : 'text-slate-600'}`}>
+                      {trend} {trend !== 'Estável' && <Activity className="w-3 h-3" />}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-1">
+                      Incidência: {currentData.dengue_incidence?.toFixed(1) || 0}
+                    </div>
                   </div>
                 </div>
+                
+                {/* Minigráfico de série temporal */}
+                {currentData.dengue_daily && currentData.dengue_daily.length > 0 && (
+                  <div className="h-16 w-full mt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={currentData.dengue_daily}>
+                        <Tooltip 
+                          contentStyle={{ fontSize: '12px', borderRadius: '6px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                          labelStyle={{ color: '#64748b' }}
+                          formatter={(value: number) => [value, 'Casos']}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="cases" 
+                          stroke={trend === "Aumento" ? "#ef4444" : "#3b82f6"} 
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -213,39 +212,32 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Bloco 4: Recomendação gerada por IA */}
+            {/* Bloco 4: Recomendação gerada por IA (Backend) */}
             <Card className="shadow-md border-indigo-200 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 xl:col-span-4 relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold text-indigo-700 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-indigo-500 animate-pulse" />
-                  Estratégia Recomendada por IA (Gemini)
+                  <Sparkles className="w-4 h-4 text-indigo-500" />
+                  Estratégia Recomendada por IA
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {loadingAi ? (
-                  <div className="flex items-center gap-3 text-indigo-400 py-6">
-                    <RefreshCcw className="w-5 h-5 animate-spin" />
-                    <span className="text-sm font-medium">Analisando contexto epidemiológico e sanitário...</span>
-                  </div>
-                ) : (
-                  <div className="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed py-2">
-                    {aiRecommendation ? (
-                      <p className="text-base sm:text-lg text-slate-800 font-medium">
-                        {aiRecommendation}
-                      </p>
-                    ) : (
-                      <p>Nenhuma recomendação disponível para este território.</p>
-                    )}
-                  </div>
-                )}
+                <div className="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed py-2">
+                  {currentData.ai_recommendation ? (
+                    <p className="text-base sm:text-lg text-slate-800 font-medium">
+                      {currentData.ai_recommendation}
+                    </p>
+                  ) : (
+                    <p className="text-slate-500 italic">Nenhuma recomendação processada pelo servidor central para este território.</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
           </div>
         ) : (
           <div className="p-8 text-center bg-white rounded-lg border border-slate-200 text-slate-500">
-            Nenhum dado encontrado.
+            Nenhum dado encontrado para o período selecionado.
           </div>
         )}
       </div>

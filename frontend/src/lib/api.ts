@@ -1,4 +1,9 @@
-// Client API module for fetching data from FastAPI and generating AI recommendations.
+// Client API module for fetching data from FastAPI
+
+export interface DailyCase {
+  date: string;
+  cases: number;
+}
 
 export interface DSEIData {
   dsei: string;
@@ -7,6 +12,8 @@ export interface DSEIData {
   dengue_incidence: number;
   sanitation_no_bathroom: number;
   solid_waste_no_collection: number;
+  dengue_daily: DailyCase[];
+  ai_recommendation: string;
 }
 
 export async function fetchDashboardData(): Promise<Record<string, DSEIData[]>> {
@@ -42,6 +49,8 @@ export async function fetchDashboardData(): Promise<Record<string, DSEIData[]>> 
           dengue_incidence: item.incidence || 0,
           sanitation_no_bathroom: item.sem_fossa || 0,
           solid_waste_no_collection: item.queima_lixo || 0,
+          dengue_daily: item.dengue_daily || [],
+          ai_recommendation: item.ai_recommendation || "",
         }));
       }
       return parsedData;
@@ -51,23 +60,3 @@ export async function fetchDashboardData(): Promise<Record<string, DSEIData[]>> 
   }
 }
 
-export async function generateAIRecommendation(dseiData: any): Promise<string> {
-  try {
-    const response = await fetch('/api/recommendation', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(dseiData)
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      return data.recommendation;
-    }
-    return "Não foi possível carregar a recomendação.";
-  } catch (error) {
-    console.error(error);
-    return "Erro ao comunicar com o servidor da IA.";
-  }
-}
