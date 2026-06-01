@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchDashboardData, DSEIData } from "@/lib/api";
+import { DASHBOARD_PERIOD, fetchDashboardData, generateActionPlan, DSEIData } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Activity, AlertTriangle, Droplet, Map as MapIcon, RefreshCcw, Sparkles, Trash2, Users } from "lucide-react";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Line, LineChart, ResponsiveContainer, Tooltip } from "recharts";
 import dynamic from "next/dynamic";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -18,20 +19,21 @@ export default function Dashboard() {
   const [selectedDsei, setSelectedDsei] = useState<string>("YANOMAMI");
   const [loading, setLoading] = useState(true);
   const [loadingPercent, setLoadingPercent] = useState(0);
+  const [actionPlans, setActionPlans] = useState<Record<string, string>>({});
+  const [planWarnings, setPlanWarnings] = useState<Record<string, string[]>>({});
+  const [generatingPlan, setGeneratingPlan] = useState(false);
+  const [planError, setPlanError] = useState<string | null>(null);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (loading) {
-      setLoadingPercent(0);
-      interval = setInterval(() => {
-        setLoadingPercent((prev) => {
-          if (prev >= 99) return 99;
-          return prev + Math.floor(Math.random() * 5) + 1;
-        });
-      }, 500);
-    } else {
-      setLoadingPercent(100);
-    }
+    if (!loading) return;
+
+    const interval = setInterval(() => {
+      setLoadingPercent((prev) => {
+        if (prev >= 99) return 99;
+        return prev + Math.floor(Math.random() * 5) + 1;
+      });
+    }, 500);
+
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -48,6 +50,7 @@ export default function Dashboard() {
           setSelectedDsei(result[defaultYear][0].dsei);
         }
       }
+      setLoadingPercent(100);
       setLoading(false);
     }
     loadData();
@@ -55,6 +58,37 @@ export default function Dashboard() {
 
   const currentData = dataByYear[selectedYear]?.find((d) => d.dsei === selectedDsei);
   const trend = currentData?.trend || "Estabilidade";
+  const actionPlanKey = `${selectedYear}:${selectedDsei}`;
+  const selectedActionPlan = actionPlans[actionPlanKey] || currentData?.ai_recommendation || "";
+  const selectedWarnings = planWarnings[actionPlanKey] || [];
+
+  async function handleGenerateActionPlan() {
+    if (!currentData || generatingPlan) return;
+
+    setGeneratingPlan(true);
+    setPlanError(null);
+
+    try {
+      const result = await generateActionPlan(
+        currentData.dsei,
+        DASHBOARD_PERIOD.dataInit,
+        DASHBOARD_PERIOD.dataEnd
+      );
+      setActionPlans((previous) => ({
+        ...previous,
+        [actionPlanKey]: result.plan_markdown,
+      }));
+      setPlanWarnings((previous) => ({
+        ...previous,
+        [actionPlanKey]: result.warnings || [],
+      }));
+    } catch (error) {
+      setPlanError(error instanceof Error ? error.message : "Falha ao gerar plano de ação.");
+    } finally {
+      setGeneratingPlan(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 space-y-4">
@@ -170,7 +204,7 @@ export default function Dashboard() {
                         <Tooltip 
                           contentStyle={{ fontSize: '12px', borderRadius: '6px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                           labelStyle={{ color: '#64748b' }}
-                          formatter={(value: number) => [value, 'Casos']}
+                          formatter={(value) => [Number(value ?? 0), 'Casos']}
                           labelFormatter={(label) => `Mês ${label}`}
                         />
                         <Line 
@@ -250,20 +284,56 @@ export default function Dashboard() {
             {/* Bloco 4: Recomendação gerada por IA (Backend) */}
             <Card className="shadow-md border-indigo-200 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 xl:col-span-2 relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-indigo-700 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-indigo-500" />
-                  Estratégia Recomendada por IA
-                </CardTitle>
+              <CardHeader className="pb-2 space-y-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <CardTitle className="text-sm font-semibold text-indigo-700 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-indigo-500" />
+                    Plano de Ação por IA
+                  </CardTitle>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleGenerateActionPlan}
+                    disabled={!currentData || generatingPlan}
+                    className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    {generatingPlan ? (
+                      <RefreshCcw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                    {generatingPlan ? "Gerando..." : "Gerar plano"}
+                  </Button>
+                </div>
+                <CardDescription>
+                  DSEI {selectedDsei} · {DASHBOARD_PERIOD.dataInit} a {DASHBOARD_PERIOD.dataEnd}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed py-2 overflow-auto max-h-[400px]">
-                  {currentData.ai_recommendation ? (
+                  {planError && (
+                    <div className="not-prose mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                      {planError}
+                    </div>
+                  )}
+                  {generatingPlan && !selectedActionPlan ? (
+                    <p className="text-slate-500 italic">Gerando plano de ação para o território selecionado...</p>
+                  ) : selectedActionPlan ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {currentData.ai_recommendation}
+                      {selectedActionPlan}
                     </ReactMarkdown>
                   ) : (
-                    <p className="text-slate-500 italic">Nenhuma recomendação processada pelo servidor central para este território.</p>
+                    <p className="text-slate-500 italic">Clique em gerar plano para criar uma proposta específica para o território selecionado.</p>
+                  )}
+                  {selectedWarnings.length > 0 && (
+                    <div className="not-prose mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                      <div className="font-semibold">Alertas da geração</div>
+                      <ul className="mt-2 list-disc pl-5">
+                        {selectedWarnings.map((warning) => (
+                          <li key={warning}>{warning}</li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </div>
               </CardContent>

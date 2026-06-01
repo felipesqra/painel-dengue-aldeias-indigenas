@@ -17,8 +17,38 @@ export interface DSEIData {
   trend: string;
 }
 
+export interface ActionPlanResponse {
+  dsei: string;
+  data_init: string;
+  data_end: string;
+  plan_markdown: string;
+  proposal: Record<string, unknown>;
+  source: string;
+  warnings: string[];
+}
+
+interface FallbackDashboardItem {
+  dsei?: string;
+  populacao?: number;
+  dengue_cases?: number;
+  incidence?: number;
+  sem_fossa?: number;
+  queima_lixo?: number;
+  dengue_daily?: { date: string; cases: number }[];
+  dengue_monthly?: { month: string; cases: number }[];
+  ai_recommendation?: string;
+  trend?: string;
+}
+
+export const DASHBOARD_PERIOD = {
+  dataInit: "2026-05-01",
+  dataEnd: "2026-05-31",
+};
+
+const apiBaseUrl = () => process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export async function fetchDashboardData(): Promise<Record<string, DSEIData[]>> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiUrl = apiBaseUrl();
   
   const dseis = [
     "ALTO RIO NEGRO", "KAIAPÓ DO MATO GROSSO", "KAIAPÓ DO PARÁ", 
@@ -43,20 +73,29 @@ export async function fetchDashboardData(): Promise<Record<string, DSEIData[]>> 
 
     for (const year of years) {
       // Pedido do usuário: apenas o intervalo do início ao fim de maio de 2026
-      const dataInitAno = `2026-05-01`;
-      const dataEndAno = `2026-05-31`;
+      const dataInitAno = DASHBOARD_PERIOD.dataInit;
+      const dataEndAno = DASHBOARD_PERIOD.dataEnd;
 
       for (const dsei of dseis) {
         const dseiUrl = encodeURIComponent(dsei);
         
         // 1. Dados principais filtrados para Maio de 2026
-        const pAnnual = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${dataInitAno}&data_end=${dataEndAno}`, { cache: 'no-store' }).then(r => r.json());
+        const pAnnual = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${dataInitAno}&data_end=${dataEndAno}`, { cache: 'no-store' }).then((r) => {
+          if (!r.ok) throw new Error(`Dashboard API falhou para ${dsei}`);
+          return r.json();
+        });
         
         // 2. Últimos 30 dias (para tendência)
-        const p30 = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${str30DaysAgo}&data_end=${todayStr}`, { cache: 'no-store' }).then(r => r.json());
+        const p30 = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${str30DaysAgo}&data_end=${todayStr}`, { cache: 'no-store' }).then((r) => {
+          if (!r.ok) throw new Error(`Dashboard API falhou para ${dsei}`);
+          return r.json();
+        });
         
         // 3. 30 a 60 dias atrás (para tendência)
-        const p60 = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${str60DaysAgo}&data_end=${str30DaysAgo}`, { cache: 'no-store' }).then(r => r.json());
+        const p60 = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${str60DaysAgo}&data_end=${str30DaysAgo}`, { cache: 'no-store' }).then((r) => {
+          if (!r.ok) throw new Error(`Dashboard API falhou para ${dsei}`);
+          return r.json();
+        });
 
         promises.push(
           Promise.all([pAnnual, p30, p60]).then(([annual, data30, data60]) => {
@@ -114,20 +153,28 @@ export async function fetchDashboardData(): Promise<Record<string, DSEIData[]>> 
     });
     
     if (fallbackResponse.ok) {
-      const jsonData = await fallbackResponse.json();
+      const jsonData = await fallbackResponse.json() as Record<string, FallbackDashboardItem[]>;
       const parsedData: Record<string, DSEIData[]> = {};
       
       for (const year of Object.keys(jsonData)) {
-        parsedData[year] = jsonData[year].map((item: any) => ({
-          dsei: item.dsei,
-          population: item.populacao || 0,
-          dengue_cases: item.dengue_cases || 0,
-          dengue_incidence: item.incidence || 0,
-          sanitation_no_bathroom: item.sem_fossa || 0,
-          solid_waste_no_collection: item.queima_lixo || 0,
-          dengue_daily: item.dengue_daily || [],
-          ai_recommendation: item.ai_recommendation || "",
-        }));
+        parsedData[year] = jsonData[year].map((item) => {
+          const dengueMonthly = item.dengue_monthly || item.dengue_daily?.map((point) => ({
+            month: point.date,
+            cases: point.cases,
+          })) || [];
+
+          return {
+            dsei: item.dsei || "DSEI não informado",
+            population: item.populacao || 0,
+            dengue_cases: item.dengue_cases || 0,
+            dengue_incidence: item.incidence || 0,
+            sanitation_no_bathroom: item.sem_fossa || 0,
+            solid_waste_no_collection: item.queima_lixo || 0,
+            dengue_monthly: dengueMonthly,
+            ai_recommendation: item.ai_recommendation || "",
+            trend: item.trend || "Estabilidade",
+          };
+        });
       }
       return parsedData;
     }
@@ -136,3 +183,30 @@ export async function fetchDashboardData(): Promise<Record<string, DSEIData[]>> 
   }
 }
 
+export async function generateActionPlan(
+  dsei: string,
+  dataInit = DASHBOARD_PERIOD.dataInit,
+  dataEnd = DASHBOARD_PERIOD.dataEnd
+): Promise<ActionPlanResponse> {
+  const apiUrl = apiBaseUrl();
+  const response = await fetch(`${apiUrl}/api/action-plan`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+    body: JSON.stringify({
+      dsei,
+      data_init: dataInit,
+      data_end: dataEnd,
+      use_mock: false,
+    }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || "Falha ao gerar o plano de ação.");
+  }
+
+  return response.json();
+}

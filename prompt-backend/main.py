@@ -2,7 +2,7 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
-from services import fetch_agua, fetch_residuos, fetch_esgoto, fetch_dengue, fetch_ai_recommendation
+from services import fetch_agua, fetch_residuos, fetch_esgoto, fetch_dengue, fetch_action_plan
 import uvicorn
 
 app = FastAPI(title="SasiSUS Backend Integrator")
@@ -29,7 +29,22 @@ class DashboardResponse(BaseModel):
     qualidade_agua: dict
     residuos: dict
     esgotamento_sanitario: dict
-    ai_recommendation: str
+    ai_recommendation: str = ""
+
+class ActionPlanRequest(BaseModel):
+    dsei: str
+    data_init: str
+    data_end: str
+    use_mock: bool = False
+
+class ActionPlanResponse(BaseModel):
+    dsei: str
+    data_init: str
+    data_end: str
+    plan_markdown: str
+    proposal: dict
+    source: str = ""
+    warnings: list[str] = []
 
 @app.get("/api/dashboard", response_model=DashboardResponse)
 async def get_dashboard_data(
@@ -47,7 +62,6 @@ async def get_dashboard_data(
             residuos = await fetch_residuos(client, dsei)
             esgoto = await fetch_esgoto(client, dsei)
             casos_dengue, casos_mensal = await fetch_dengue(client, dsei, data_init, data_end)
-            ai_rec = await fetch_ai_recommendation(client, dsei, data_init, data_end)
             
             # Formatar a resposta exatamente como em output_example.json
             return DashboardResponse(
@@ -59,10 +73,37 @@ async def get_dashboard_data(
                 qualidade_agua=agua,
                 residuos=residuos,
                 esgotamento_sanitario=esgoto,
-                ai_recommendation=ai_rec
+                ai_recommendation=""
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/action-plan", response_model=ActionPlanResponse)
+async def generate_action_plan(request: ActionPlanRequest):
+    """
+    Encaminha o DSEI selecionado para o serviço RAG/LLM. A LLM busca os dados
+    neste próprio backend via API_URL e devolve o plano estruturado.
+    """
+    async with httpx.AsyncClient() as client:
+        try:
+            result = await fetch_action_plan(
+                client,
+                request.dsei,
+                request.data_init,
+                request.data_end,
+                request.use_mock
+            )
+            return ActionPlanResponse(
+                dsei=request.dsei,
+                data_init=request.data_init,
+                data_end=request.data_end,
+                **result
+            )
+        except httpx.HTTPStatusError as e:
+            detail = e.response.text
+            raise HTTPException(status_code=502, detail=f"LLM service failed: {detail}")
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

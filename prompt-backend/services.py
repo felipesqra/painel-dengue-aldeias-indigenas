@@ -1,5 +1,4 @@
 import httpx
-import asyncio
 from datetime import datetime
 from constants import DSEI_IBGE_MAPPING
 import json
@@ -129,24 +128,29 @@ async def fetch_dengue(client: httpx.AsyncClient, dsei: str, data_init: str, dat
     mensal = {str(i).zfill(2): 0 for i in range(1, 13)}
     
     try:
-        year = data_init.split("-")[0]
+        start_date = datetime.strptime(data_init, "%Y-%m-%d").date()
+        end_date = datetime.strptime(data_end, "%Y-%m-%d").date()
+        if end_date < start_date:
+            raise ValueError("data_end cannot be earlier than data_init")
+
         rows = load_dengue_csv()
         
         for row in rows:
             dt_case = row.get("DT_NOTIFIC", "")
-            
-            if not dt_case.startswith(year):
+            try:
+                case_date = datetime.strptime(dt_case, "%Y-%m-%d").date()
+            except ValueError:
+                continue
+
+            if case_date < start_date or case_date > end_date:
                 continue
 
             ibge_resi = str(row.get("ID_MUNICIP", ""))
             if ibge_resi in ibge_6digits and str(row.get("CS_RACA")) == "5":
                 casos += 1
-                try:
-                    month = dt_case.split("-")[1]
-                    if month in mensal:
-                        mensal[month] += 1
-                except:
-                    pass
+                month = f"{case_date.month:02d}"
+                if month in mensal:
+                    mensal[month] += 1
                 
         logger.info(f"Casos totais (indígena + DSEI + datas): {casos}")
         
@@ -185,6 +189,18 @@ def format_ai_markdown(data: dict) -> str:
         for act in data["short_term_actions_30_days"]:
             md += f"- **{act.get('action')}**\n  - *Justificativa:* {act.get('justification')}\n"
         md += "\n"
+
+    if "medium_term_actions_90_days" in data:
+        md += "#### Ações de Médio Prazo (90 Dias)\n"
+        for act in data["medium_term_actions_90_days"]:
+            md += f"- **{act.get('action')}**\n  - *Justificativa:* {act.get('justification')}\n"
+        md += "\n"
+
+    if "suggested_responsibilities" in data:
+        md += "#### Responsabilidades Sugeridas\n"
+        for item in data["suggested_responsibilities"]:
+            md += f"- **{item.get('action')}**: {item.get('main_responsible')}\n"
+        md += "\n"
         
     if "monitoring_indicators" in data:
         md += "#### Indicadores de Monitoramento\n"
@@ -193,29 +209,24 @@ def format_ai_markdown(data: dict) -> str:
             
     return md
 
-async def fetch_ai_recommendation(client: httpx.AsyncClient, dsei: str, data_init: str, data_end: str) -> str:
+async def fetch_action_plan(client: httpx.AsyncClient, dsei: str, data_init: str, data_end: str, use_mock: bool = False) -> dict:
     payload = {
         "dsei": dsei,
         "data_init": data_init,
         "data_end": data_end,
-        "use_mock": True
+        "use_mock": use_mock
     }
-    try:
-        url = os.getenv("AI_API_URL", "https://rag-painel-indigena-production.up.railway.app/generate-intervention")
-        timeout = float(os.getenv("AI_TIMEOUT_SECONDS", "30"))
-        # Tempo de limite longo pois LLMs demoram a responder
-        response = await client.post(url, json=payload, timeout=timeout)
-        response.raise_for_status()
-        data = response.json()
-        proposal = data.get("intervention_proposal", data)
-        return format_ai_markdown(proposal)
-    except Exception as e:
-        logger.error(f"[fetch_ai] Erro ao buscar IA ({e}), usando mock fallback.")
-        try:
-            mock_path = os.path.join(os.path.dirname(__file__), "mock_ai.json")
-            with open(mock_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            return format_ai_markdown(data)
-        except Exception as e2:
-            logger.error(f"[fetch_ai] Erro ao ler mock: {e2}")
-            return "Falha ao gerar proposta de intervenção."
+    url = os.getenv("LLM_API_URL") or os.getenv("AI_API_URL") or "https://rag-painel-indigena-production.up.railway.app/generate-intervention"
+    timeout = float(os.getenv("AI_TIMEOUT_SECONDS", "60"))
+
+    response = await client.post(url, json=payload, timeout=timeout)
+    response.raise_for_status()
+    data = response.json()
+    proposal = data.get("intervention_proposal", data)
+
+    return {
+        "plan_markdown": format_ai_markdown(proposal),
+        "proposal": proposal,
+        "source": data.get("source", ""),
+        "warnings": data.get("warnings", [])
+    }
