@@ -1,2 +1,7 @@
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
 prompt-backend/venv/
 prompt-backend/dengue_api_response_2026.json

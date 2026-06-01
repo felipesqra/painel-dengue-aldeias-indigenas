@@ -16,6 +16,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 class DashboardResponse(BaseModel):
     dsei: str
     casos_dengue: int

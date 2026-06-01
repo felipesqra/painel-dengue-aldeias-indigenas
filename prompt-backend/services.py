@@ -201,12 +201,14 @@ async def fetch_ai_recommendation(client: httpx.AsyncClient, dsei: str, data_ini
         "use_mock": True
     }
     try:
-        url = "https://rag-painel-indigena-production.up.railway.app/"
+        url = os.getenv("AI_API_URL", "https://rag-painel-indigena-production.up.railway.app/generate-intervention")
+        timeout = float(os.getenv("AI_TIMEOUT_SECONDS", "30"))
         # Tempo de limite longo pois LLMs demoram a responder
-        response = await client.post(url, json=payload, timeout=30.0)
+        response = await client.post(url, json=payload, timeout=timeout)
         response.raise_for_status()
         data = response.json()
-        return format_ai_markdown(data)
+        proposal = data.get("intervention_proposal", data)
+        return format_ai_markdown(proposal)
     except Exception as e:
         logger.error(f"[fetch_ai] Erro ao buscar IA ({e}), usando mock fallback.")
         try:
