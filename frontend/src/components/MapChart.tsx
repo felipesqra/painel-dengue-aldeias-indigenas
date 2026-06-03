@@ -8,13 +8,40 @@ const geoUrl = "/brazil-states.json";
 
 // Approximate coordinates for the 7 DSEIs
 const dseiCoordinates: Record<string, [number, number]> = {
-  "ALTO RIO NEGRO": [-67.0, 0.0],
-  "KAIAPÓ DO MATO GROSSO": [-53.0, -10.0],
-  "KAIAPÓ DO PARÁ": [-51.0, -7.0],
-  "VALE DO JAVARI": [-71.0, -5.0],
-  "XAVANTE": [-52.0, -14.0],
-  "XINGU": [-53.0, -12.0],
-  "YANOMAMI": [-63.0, 3.0]
+  "ALAGOAS E SERGIPE": [-37.04, -10.05],
+  "ALTAMIRA": [-52.93, -3.97],
+  "ALTO RIO JURUÁ": [-70.35, -9.02],
+  "ALTO RIO NEGRO": [-64.67, -4.13],
+  "ALTO RIO PURUS": [-65.96, -8.03],
+  "ALTO RIO SOLIMÕES": [-64.67, -4.13],
+  "AMAPÁ E NORTE DO PARÁ": [-52.44, -1.28],
+  "ARAGUAIA": [-51.35, -12.91],
+  "BAHIA": [-41.71, -12.50],
+  "CEARÁ": [-39.38, -5.20],
+  "CUIABÁ": [-55.91, -12.64],
+  "GUAMÁ-TOCANTINS": [-49.10, -4.51],
+  "INTERIOR SUL": [-51.90, -28.48],
+  "KAIAPÓ DO MATO GROSSO": [-54.42, -8.30],
+  "KAIAPÓ DO PARÁ": [-52.93, -3.97],
+  "LESTE DE RORAIMA": [-61.22, 2.08],
+  "LITORAL SUL": [-47.72, -23.05],
+  "MANAUS": [-64.67, -4.13],
+  "MARANHÃO": [-45.27, -5.04],
+  "MATO GROSSO DO SUL": [-54.65, -20.33],
+  "MINAS GERAIS E ESPÍRITO SANTO": [-42.30, -18.65],
+  "MÉDIO RIO PURUS": [-64.67, -4.13],
+  "MÉDIO RIO SOLIMÕES E AFLUENTES": [-64.67, -4.13],
+  "PARINTINS": [-58.80, -4.05],
+  "PERNAMBUCO": [-37.80, -8.34],
+  "PORTO VELHO": [-61.15, -9.24],
+  "POTIGUARA": [-36.72, -6.47],
+  "RIO TAPAJÓS": [-52.93, -3.97],
+  "TOCANTINS": [-50.63, -7.06],
+  "VALE DO JAVARI": [-64.67, -4.13],
+  "VILHENA": [-59.39, -11.79],
+  "XAVANTE": [-55.91, -12.64],
+  "XINGU": [-55.91, -12.64],
+  "YANOMAMI": [-62.95, -1.03]
 };
 
 interface MapChartProps {
