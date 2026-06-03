@@ -3,5 +3,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
-prompt-backend/venv/
-prompt-backend/dengue_api_response_2026.json
+backend/venv/
+backend/dengue_api_response_2026.json
+.venv
+venv

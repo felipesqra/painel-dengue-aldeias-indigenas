@@ -152,13 +152,16 @@ async def fetch_dengue(client: httpx.AsyncClient, dsei: str, data_init: str, dat
                 if month in mensal:
                     mensal[month] += 1
                 
-        logger.info(f"Casos totais (indígena + DSEI + datas): {casos}")
+        logger.info(f"[fetch_dengue] Casos totais (indígena + DSEI + datas): {casos}")
         
         casos_mensal = [{"month": k, "cases": v} for k, v in mensal.items()]
                 
         if casos == 0:
             logger.info("NAO TEM DADOS")
             return 0, casos_mensal
+        else:
+            logger.info(f"[fetch_dengue] Dados processados: {casos}")
+
             
     except Exception as e:
         logger.error(f"[fetch_dengue] Falha ao processar: {e}")
