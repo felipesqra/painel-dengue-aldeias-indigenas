@@ -1,9 +1,10 @@
 import httpx
 from datetime import datetime
-from constants import DSEI_IBGE_MAPPING
+from constants import DSEI_IBGE_MAPPING, BASE_DSEI_DATA
 import json
 import os
 import logging
+import copy
 
 # Configure logger
 logger = logging.getLogger("uvicorn.error")
@@ -24,6 +25,29 @@ async def fetch_json(client: httpx.AsyncClient, url: str) -> dict:
     except Exception as e:
         logger.error(f"[fetch_json] Falha na chamada para {url}: {e}")
         return {}
+
+async def fecth_all_data(client: httpx.AsyncClient) -> dict:
+    all_data = copy.deepcopy(BASE_DSEI_DATA)
+
+    agua_data = await fetch_json(client, URL_AGUA)
+    rows = agua_data.get("fornecimento_monitoramento_qualidade_acesso_agua", [])
+    for item in rows:
+        if not item.get("dsei") is None:
+            all_data[item.get("dsei")]["fornecimento_monitoramento_qualidade_acesso_agua"] = item
+
+    residuos_data = await fetch_json(client, URL_RESIDUOS)
+    rows = residuos_data.get("gerenciamento_residuos_solidos", [])
+    for item in rows:
+        if not item.get("distrito_sanitario_especial_indigena_dsei") is None:
+            all_data[item.get("distrito_sanitario_especial_indigena_dsei")]["gerenciamento_residuos_solidos"] = item
+
+    esgoto_data = await fetch_json(client, URL_ESGOTO)
+    rows = esgoto_data.get("esgotamento_sanitario", [])
+    for item in rows:
+        if not item.get("distrito_sanitario_especial_indigena") is None:
+            all_data[item.get("distrito_sanitario_especial_indigena")]["esgotamento_sanitario"] = item
+
+    
 
 async def fetch_agua(client: httpx.AsyncClient, dsei: str) -> dict:
     data = await fetch_json(client, URL_AGUA)
