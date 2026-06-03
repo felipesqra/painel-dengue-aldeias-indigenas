@@ -39,17 +39,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function loadData() {
-      const result = await fetchDashboardData();
-      setDataByYear(result);
-      
-      const years = Object.keys(result).sort((a, b) => Number(b) - Number(a));
-      if (years.length > 0) {
-        const defaultYear = years.includes("2024") ? "2024" : years[0];
-        setSelectedYear(defaultYear);
-        if (result[defaultYear] && result[defaultYear].length > 0) {
-          setSelectedDsei(result[defaultYear][0].dsei);
-        }
-      }
+      const date = new Date();
+      const resultDataYear = await fetchDashboardData(selectedYear+"-01-01", selectedYear+"-12-31");
+      setDataByYear(resultDataYear);
       setLoadingPercent(100);
       setLoading(false);
     }

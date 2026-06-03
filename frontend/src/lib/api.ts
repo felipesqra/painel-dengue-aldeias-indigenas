@@ -41,18 +41,50 @@ interface FallbackDashboardItem {
 }
 
 export const DASHBOARD_PERIOD = {
-  dataInit: "2026-05-01",
+  dataInit: "2026-01-01",
   dataEnd: "2026-05-31",
 };
 
 const apiBaseUrl = () => process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-export async function fetchDashboardData(): Promise<Record<string, DSEIData[]>> {
+export async function fetchDashboardData(dataInit: string, dataEnd: string): Promise<Record<string, DSEIData[]>> {
   const apiUrl = apiBaseUrl();
   
   const dseis = [
-    "ALTO RIO NEGRO", "KAIAPÓ DO MATO GROSSO", "KAIAPÓ DO PARÁ", 
-    "VALE DO JAVARI", "XINGU", "YANOMAMI"
+    "ALAGOAS E SERGIPE",
+    "ALTAMIRA",
+    "ALTO RIO JURUÁ",
+    "ALTO RIO NEGRO",
+    "ALTO RIO PURUS",
+    "ALTO RIO SOLIMÕES",
+    "AMAPÁ E NORTE DO PARÁ",
+    "ARAGUAIA",
+    "BAHIA",
+    "CEARÁ",
+    "CUIABÁ",
+    "GUAMÁ-TOCANTINS",
+    "INTERIOR SUL",
+    "KAIAPÓ DO MATO GROSSO",
+    "KAIAPÓ DO PARÁ",
+    "LESTE DE RORAIMA",
+    "LITORAL SUL",
+    "MANAUS",
+    "MARANHÃO",
+    "MATO GROSSO DO SUL",
+    "MINAS GERAIS E ESPÍRITO SANTO",
+    "MÉDIO RIO PURUS",
+    "MÉDIO RIO SOLIMÕES E AFLUENTES",
+    "PARINTINS",
+    "PERNAMBUCO",
+    "PORTO VELHO",
+    "POTIGUARA",
+    "RIO TAPAJÓS",
+    "TOCANTINS",
+    "VALE DO JAVARI",
+    "VILHENA",
+    "XAVANTE",
+    "XINGU",
+    "YANOMAMI",
   ];
 
   try {
@@ -72,15 +104,12 @@ export async function fetchDashboardData(): Promise<Record<string, DSEIData[]>> 
     const str60DaysAgo = formatYMD(date60DaysAgo);
 
     for (const year of years) {
-      // Pedido do usuário: apenas o intervalo do início ao fim de maio de 2026
-      const dataInitAno = DASHBOARD_PERIOD.dataInit;
-      const dataEndAno = DASHBOARD_PERIOD.dataEnd;
 
       for (const dsei of dseis) {
         const dseiUrl = encodeURIComponent(dsei);
         
         // 1. Dados principais filtrados para Maio de 2026
-        const pAnnual = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${dataInitAno}&data_end=${dataEndAno}`, { cache: 'no-store' }).then((r) => {
+        const pAnnual = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${dataInit}&data_end=${dataEnd}`, { cache: 'no-store' }).then((r) => {
           if (!r.ok) throw new Error(`Dashboard API falhou para ${dsei}`);
           return r.json();
         });
