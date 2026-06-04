@@ -321,9 +321,13 @@ async def fetch_action_plan(client: httpx.AsyncClient, dsei: str, data_init: str
     }
     url = os.getenv("LLM_API_URL") or os.getenv("AI_API_URL") or "https://rag-painel-indigena-production.up.railway.app/generate-intervention"
     timeout = float(os.getenv("AI_TIMEOUT_SECONDS", "60"))
+    headers = {
+        "Content-Type": "application/json; charset=utf-8"
+    }
 
-    response = await client.post(url, json=payload, timeout=timeout)
+    response = await client.post(url, json=payload, timeout=timeout, headers=headers)
     response.raise_for_status()
+    response.encoding = "utf-8" 
     data = response.json()
     proposal = data.get("intervention_proposal", data)
 
