@@ -1,6 +1,6 @@
 import httpx
 from datetime import datetime
-from constants import DSEI_IBGE_MAPPING, BASE_DSEI_DATA
+from constants import DSEI_IBGE_MAPPING, BASE_DSEI_DATA, IBGE_DSEI_MAPPING
 import json
 import os
 import logging
@@ -26,28 +26,104 @@ async def fetch_json(client: httpx.AsyncClient, url: str) -> dict:
         logger.error(f"[fetch_json] Falha na chamada para {url}: {e}")
         return {}
 
-async def fecth_all_data(client: httpx.AsyncClient) -> dict:
+async def fecth_all_data(client: httpx.AsyncClient, data_init: str, data_end: str) -> dict:
+    """Aggregate data from the external APIs and local dengue CSV.
+
+    - `data_init` and `data_end` are strings in YYYY-MM-DD.
+    - Returns a dict keyed by DSEI with population, sanitation, residuos and dengue counts.
+    """
     all_data = copy.deepcopy(BASE_DSEI_DATA)
 
+    # initialize sensible defaults and a temporary mensal map
+    for dsei in all_data.keys():
+        all_data[dsei].setdefault("population", 0)
+        all_data[dsei].setdefault("sanitation_no_bathroom", 0)
+        all_data[dsei].setdefault("solid_waste_no_collection", 0)
+        all_data[dsei]["dengue_cases"] = 0
+        all_data[dsei]["_mensal_map"] = {f"{i:02d}": 0 for i in range(1, 13)}
+
+    # Água
     agua_data = await fetch_json(client, URL_AGUA)
-    rows = agua_data.get("fornecimento_monitoramento_qualidade_acesso_agua", [])
-    for item in rows:
-        if not item.get("dsei") is None:
-            all_data[item.get("dsei")]["fornecimento_monitoramento_qualidade_acesso_agua"] = item
+    try:
+        rows = agua_data.get("fornecimento_monitoramento_qualidade_acesso_agua", [])
+        for item in rows:
+            dsei_name = item.get("dsei")
+            if dsei_name in all_data:
+                all_data[dsei_name]["population"] = item.get("populacao_total", all_data[dsei_name]["population"])
+    except Exception:
+        logger.exception("Erro processando dados de agua")
 
+    # Resíduos
     residuos_data = await fetch_json(client, URL_RESIDUOS)
-    rows = residuos_data.get("gerenciamento_residuos_solidos", [])
-    for item in rows:
-        if not item.get("distrito_sanitario_especial_indigena_dsei") is None:
-            all_data[item.get("distrito_sanitario_especial_indigena_dsei")]["gerenciamento_residuos_solidos"] = item
+    try:
+        rows = residuos_data.get("gerenciamento_residuos_solidos", [])
+        for item in rows:
+            dsei_name = item.get("distrito_sanitario_especial_indigena_dsei")
+            if dsei_name in all_data:
+                all_data[dsei_name]["solid_waste_no_collection"] = item.get(
+                    "pratica_de_queima_de_residuos_pela_comunidade_percentual_de_aldeias_que_possuem_a_pratica_de_queima_dos_residuos",
+                    all_data[dsei_name]["solid_waste_no_collection"],
+                )
+    except Exception:
+        logger.exception("Erro processando dados de residuos")
 
+    # Esgoto
     esgoto_data = await fetch_json(client, URL_ESGOTO)
-    rows = esgoto_data.get("esgotamento_sanitario", [])
-    for item in rows:
-        if not item.get("distrito_sanitario_especial_indigena") is None:
-            all_data[item.get("distrito_sanitario_especial_indigena")]["esgotamento_sanitario"] = item
+    try:
+        rows = esgoto_data.get("esgotamento_sanitario", [])
+        for item in rows:
+            dsei_name = item.get("distrito_sanitario_especial_indigena") or item.get("dsei")
+            if dsei_name in all_data:
+                all_data[dsei_name]["sanitation_no_bathroom"] = item.get("exist_estrut_perc_ald_sem_estrutura", all_data[dsei_name]["sanitation_no_bathroom"])
+    except Exception:
+        logger.exception("Erro processando dados de esgoto")
 
-    
+    # Dengue (local CSV)
+    dengue_rows = load_dengue_csv()
+    try:
+        start_date = datetime.strptime(data_init, "%Y-%m-%d").date()
+        end_date = datetime.strptime(data_end, "%Y-%m-%d").date()
+    except Exception:
+        logger.exception("Datas inválidas em fecth_all_data")
+        return all_data
+
+    for row in dengue_rows:
+
+        if not str(row.get("CS_RACA")) == "5":
+            continue
+
+        dt_case = row.get("DT_NOTIFIC", "")
+        try:
+            case_date = datetime.strptime(dt_case, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+
+        if case_date < start_date or case_date > end_date:
+            continue
+
+        ibge_resi_raw = str(row.get("ID_MUNICIP", "")).strip()
+        if not ibge_resi_raw:
+            continue
+        ibge_key = ibge_resi_raw.zfill(6)[:6]
+        mapped = IBGE_DSEI_MAPPING.get(ibge_key)
+        if not mapped:
+            continue
+
+        month = f"{case_date.month:02d}"
+        for mapped_dsei in mapped:
+            if mapped_dsei not in all_data:
+                print("DSEI COM PROBLEMAS: ", mapped_dsei)
+                continue
+            all_data[mapped_dsei]["dengue_cases"] += 1
+            all_data[mapped_dsei]["_mensal_map"][month] = all_data[mapped_dsei]["_mensal_map"].get(month, 0) + 1
+
+    # convert mensal maps to list format expected by the frontend
+    for dsei in list(all_data.keys()):
+        mensal_map = all_data[dsei].pop("_mensal_map", {f"{i:02d}": 0 for i in range(1, 13)})
+        all_data[dsei]["casos_dengue_mensal"] = [{"month": k, "cases": v} for k, v in sorted(mensal_map.items())]
+
+    return all_data
+
 
 async def fetch_agua(client: httpx.AsyncClient, dsei: str) -> dict:
     data = await fetch_json(client, URL_AGUA)

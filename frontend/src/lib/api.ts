@@ -105,33 +105,30 @@ export async function fetchDashboardData(dataInit: string, dataEnd: string): Pro
 
     for (const year of years) {
 
-      for (const dsei of dseis) {
-        const dseiUrl = encodeURIComponent(dsei);
-        
-        // 1. Dados principais filtrados para Maio de 2026
-        const pAnnual = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${dataInit}&data_end=${dataEnd}`, { cache: 'no-store' }).then((r) => {
-          if (!r.ok) throw new Error(`Dashboard API falhou para ${dsei}`);
-          return r.json();
-        });
-        
-        // 2. Últimos 30 dias (para tendência)
-        const p30 = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${str30DaysAgo}&data_end=${todayStr}`, { cache: 'no-store' }).then((r) => {
-          if (!r.ok) throw new Error(`Dashboard API falhou para ${dsei}`);
-          return r.json();
-        });
-        
-        // 3. 30 a 60 dias atrás (para tendência)
-        const p60 = fetch(`${apiUrl}/api/dashboard?dsei=${dseiUrl}&data_init=${str60DaysAgo}&data_end=${str30DaysAgo}`, { cache: 'no-store' }).then((r) => {
-          if (!r.ok) throw new Error(`Dashboard API falhou para ${dsei}`);
-          return r.json();
-        });
+      // 1. Dados principais filtrados para Maio de 2026
+      const pAnnual = fetch(`${apiUrl}/api/all_data?data_init=${dataInit}&data_end=${dataEnd}`, { cache: 'no-store' }).then((r) => {
+        if (!r.ok) throw new Error(`Dashboard API falhou`);
+        return r.json();
+      });
+      
+      // 2. Últimos 30 dias (para tendência)
+      const p30 = fetch(`${apiUrl}/api/all_data?data_init=${str30DaysAgo}&data_end=${todayStr}`, { cache: 'no-store' }).then((r) => {
+        if (!r.ok) throw new Error(`Dashboard API falhou`);
+        return r.json();
+      });
+      
+      // 3. 30 a 60 dias atrás (para tendência)
+      const p60 = fetch(`${apiUrl}/api/all_data?data_init=${str60DaysAgo}&data_end=${str30DaysAgo}`, { cache: 'no-store' }).then((r) => {
+        if (!r.ok) throw new Error(`Dashboard API falhou}`);
+        return r.json();
+      });
 
-        promises.push(
-          Promise.all([pAnnual, p30, p60]).then(([annual, data30, data60]) => {
-            return { year, annual, data30, data60 };
-          })
-        );
-      }
+      promises.push(
+        Promise.all([pAnnual, p30, p60]).then(([annual, data30, data60]) => {
+          return { year, annual, data30, data60 };
+        })
+      );
+      
     }
 
     const responses = await Promise.allSettled(promises);
@@ -140,30 +137,36 @@ export async function fetchDashboardData(dataInit: string, dataEnd: string): Pro
     for (const result of responses) {
       if (result.status === "fulfilled") {
         const { year, annual, data30, data60 } = result.value;
-        
-        const casos30 = data30.casos_dengue || 0;
-        const casos60 = data60.casos_dengue || 0;
-        
-        let trendValue = "";
-        if (casos30 > casos60) {
-          trendValue = "Aumento";
-        } else if (casos30 < casos60) {
-          trendValue = "Queda";
-        } else {
-          trendValue = "Estabilidade";
+        for(const dsei in annual){
+          
+          const dadosAnuais = annual[dsei];
+          const dados30DoDsei = data30[dsei];
+          const dados60DoDsei = data60[dsei];
+          
+          const casos30 = dados30DoDsei?.casos_dengue ?? 0;
+          const casos60 = dados30DoDsei?.casos_dengue ?? 0;
+          
+          let trendValue = "";
+          if (casos30 > casos60) {
+            trendValue = "Aumento";
+          } else if (casos30 < casos60) {
+            trendValue = "Queda";
+          } else {
+            trendValue = "Estabilidade";
+          }
+  
+          parsedData[year].push({
+            dsei: dsei,
+            population: parseInt(dadosAnuais.population) || 0,
+            dengue_cases: dadosAnuais.dengue_cases || 0,
+            dengue_incidence: 0, 
+            sanitation_no_bathroom: parseFloat(String(dadosAnuais.sanitation_no_bathroom ?? "0").replace('%','').replace(',','.')) || 0,
+            solid_waste_no_collection: parseFloat(String(dadosAnuais.solid_waste_no_collection ?? "0").replace('%','').replace(',','.')) || 0,
+            dengue_monthly: dadosAnuais.casos_dengue_mensal || [],
+            ai_recommendation: "",
+            trend: trendValue,
+          });
         }
-
-        parsedData[year].push({
-          dsei: annual.dsei,
-          population: parseInt(annual.qualidade_agua?.populacao_total) || 0,
-          dengue_cases: annual.casos_dengue || 0,
-          dengue_incidence: 0, 
-          sanitation_no_bathroom: parseFloat(annual.esgotamento_sanitario?.exist_estrut_perc_ald_sem_estrutura?.replace('%','')) || 0,
-          solid_waste_no_collection: parseFloat(annual.residuos?.pratica_de_queima_de_residuos_pela_comunidade_percentual_de_aldeias_que_possuem_a_pratica_de_queima_dos_residuos?.replace('%','')) || 0,
-          dengue_monthly: annual.casos_dengue_mensal || [],
-          ai_recommendation: annual.ai_recommendation || "",
-          trend: trendValue,
-        });
       }
     }
 

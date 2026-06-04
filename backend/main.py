@@ -2,7 +2,7 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
-from services import fetch_agua, fetch_residuos, fetch_esgoto, fetch_dengue, fetch_action_plan
+from services import fetch_agua, fetch_residuos, fetch_esgoto, fetch_dengue, fetch_action_plan, fecth_all_data
 import uvicorn
 
 app = FastAPI(title="SasiSUS Backend Integrator")
@@ -45,6 +45,18 @@ class ActionPlanResponse(BaseModel):
     proposal: dict
     source: str = ""
     warnings: list[str] = []
+
+@app.get("/api/all_data")
+async def get_all_data(
+    data_init: str = Query(..., description="Data de inicio YYYY-MM-DD"),
+    data_end: str = Query(..., description="Data de fim YYYY-MM-DD")
+):
+    async with httpx.AsyncClient() as client:
+        try:
+            data = await fecth_all_data(client, data_init, data_end)
+            return data
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/dashboard", response_model=DashboardResponse)
 async def get_dashboard_data(
