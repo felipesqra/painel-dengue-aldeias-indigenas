@@ -45,48 +45,14 @@ export const DASHBOARD_PERIOD = {
   dataEnd: "2026-05-31",
 };
 
-const apiBaseUrl = () => process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const apiBaseUrl = () => {
+  const url = process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:8000";
+  return url.replace(/\/+$/, "");
+};
 
 export async function fetchDashboardData(dataInit: string, dataEnd: string): Promise<Record<string, DSEIData[]>> {
   const apiUrl = apiBaseUrl();
   
-  const dseis = [
-    "ALAGOAS E SERGIPE",
-    "ALTAMIRA",
-    "ALTO RIO JURUÁ",
-    "ALTO RIO NEGRO",
-    "ALTO RIO PURUS",
-    "ALTO RIO SOLIMÕES",
-    "AMAPÁ E NORTE DO PARÁ",
-    "ARAGUAIA",
-    "BAHIA",
-    "CEARÁ",
-    "CUIABÁ",
-    "GUAMÁ-TOCANTINS",
-    "INTERIOR SUL",
-    "KAIAPÓ DO MATO GROSSO",
-    "KAIAPÓ DO PARÁ",
-    "LESTE DE RORAIMA",
-    "LITORAL SUL",
-    "MANAUS",
-    "MARANHÃO",
-    "MATO GROSSO DO SUL",
-    "MINAS GERAIS E ESPÍRITO SANTO",
-    "MÉDIO RIO PURUS",
-    "MÉDIO RIO SOLIMÕES E AFLUENTES",
-    "PARINTINS",
-    "PERNAMBUCO",
-    "PORTO VELHO",
-    "POTIGUARA",
-    "RIO TAPAJÓS",
-    "TOCANTINS",
-    "VALE DO JAVARI",
-    "VILHENA",
-    "XAVANTE",
-    "XINGU",
-    "YANOMAMI",
-  ];
-
   try {
     const years = ["2026"];
     const promises = [];
@@ -144,7 +110,7 @@ export async function fetchDashboardData(dataInit: string, dataEnd: string): Pro
           const dados60DoDsei = data60[dsei];
           
           const casos30 = dados30DoDsei?.casos_dengue ?? 0;
-          const casos60 = dados30DoDsei?.casos_dengue ?? 0;
+          const casos60 = dados60DoDsei?.casos_dengue ?? 0;
           
           let trendValue = "";
           if (casos30 > casos60) {

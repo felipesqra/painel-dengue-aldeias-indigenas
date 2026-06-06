@@ -14,6 +14,25 @@ URL_ESGOTO = "https://apidadosabertos.saude.gov.br/saude-indigena/sasisus-esgota
 URL_RESIDUOS = "https://apidadosabertos.saude.gov.br/saude-indigena/sasi-sus-gerenciamento-de-residuos-solidos"
 URL_AGUA = "https://apidadosabertos.saude.gov.br/saude-indigena/planilha-de-fornecimento-e-monitoramento-da-qualidade-da-agua-acesso-a-agua"
 URL_DENGUE = "https://apidadosabertos.saude.gov.br/arboviroses/dengue"
+DEFAULT_LLM_API_URL = "https://rag-painel-indigena-production.up.railway.app/generate-intervention"
+
+def normalize_url(value: str | None, fallback: str, env_name: str) -> str:
+    url = (value or "").strip()
+    if not url:
+        return fallback
+
+    if any(ord(char) < 32 or ord(char) == 127 for char in url):
+        raise ValueError(f"{env_name} contem caracteres de controle. Remova quebras de linha ou espacos dentro da URL.")
+
+    return url
+
+def configured_llm_api_url() -> str:
+    for env_name in ("LLM_API_URL", "AI_API_URL"):
+        env_value = os.getenv(env_name)
+        if env_value and env_value.strip():
+            return normalize_url(env_value, DEFAULT_LLM_API_URL, env_name)
+
+    return DEFAULT_LLM_API_URL
 
 async def fetch_json(client: httpx.AsyncClient, url: str) -> dict:
     try:
@@ -319,7 +338,7 @@ async def fetch_action_plan(client: httpx.AsyncClient, dsei: str, data_init: str
         "data_end": data_end,
         "use_mock": use_mock
     }
-    url = os.getenv("LLM_API_URL") or os.getenv("AI_API_URL") or "https://rag-painel-indigena-production.up.railway.app/generate-intervention"
+    url = configured_llm_api_url()
     timeout = float(os.getenv("AI_TIMEOUT_SECONDS", "60"))
     headers = {
         "Content-Type": "application/json; charset=utf-8"

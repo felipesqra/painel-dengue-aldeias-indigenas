@@ -39,14 +39,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function loadData() {
-      const date = new Date();
       const resultDataYear = await fetchDashboardData(selectedYear+"-01-01", selectedYear+"-12-31");
       setDataByYear(resultDataYear);
       setLoadingPercent(100);
       setLoading(false);
     }
     loadData();
-  }, []);
+  }, [selectedYear]);
 
   const currentData = dataByYear[selectedYear]?.find((d) => d.dsei === selectedDsei);
   const trend = currentData?.trend || "Estabilidade";
